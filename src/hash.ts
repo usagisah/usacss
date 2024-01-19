@@ -3,7 +3,7 @@
  */
 
 const createBuffer = (val: string) => new TextEncoder().encode(val)
-export function murmurHash(str: string | Uint8Array, seed = 9): number {
+export function murmurHash(str: string | Uint8Array, seed = 9): string {
   if (typeof str === "string") str = createBuffer(str)
   let l = str.length,
     h = seed ^ l,
@@ -45,5 +45,5 @@ export function murmurHash(str: string | Uint8Array, seed = 9): number {
   h = (h & 0xffff) * 0x5bd1e995 + ((((h >>> 16) * 0x5bd1e995) & 0xffff) << 16)
   h ^= h >>> 15
 
-  return h >>> 0
+  return (h >>> 0).toString(16)
 }
