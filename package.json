@@ -5,7 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vitest",
-    "watch": "tsc -w"
+    "watch": "tsc -p tsconfig.watch.json -w",
+    "format": "prettier -w src/*.ts"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "keywords": [],
   "author": "",

@@ -1,33 +1,24 @@
 import { Properties, Pseudos } from "csstype"
 import { camelToKebab, isPlainObject } from "./helper"
 import { AtomRawStyle, AtomStyleClassNames, BaseStyleAction } from "./style.type"
-import { UStyleSheet, getStyleSheet } from "./styleSheet"
+import { getStyleSheet } from "./styleSheet"
 
-/* 
-atomStyle({
-  button: {
-    fontSize: "14px",
-    color: {
-      value: "red",
-      ":hover": "orange"
-    }
-  }
-})
-*/
-
-type AtomStyleConfig = {
+export type AtomStyleConfig = {
   [key: string]: {
     [K in keyof Properties]: Properties[K] | { [N in Pseudos | "value"]?: Properties[K] }
   }
 }
 
-export type AtomStyleAction = BaseStyleAction & Record<string, AtomStyleClassNames>
+export type AtomStyleDelete = (key: string, propertyKeys?: string[]) => void
 
-export function atomStyle(styleConfig: AtomStyleConfig, sheet?: UStyleSheet) {
-  if (!sheet) {
-    sheet = getStyleSheet()
-  }
-  const cls: Record<string, AtomStyleClassNames> = {}
+export type AtomStyleAction = BaseStyleAction & {
+  style: Record<string, AtomStyleClassNames>
+  $delete: AtomStyleDelete
+}
+
+export function atomStyle(styleConfig: AtomStyleConfig): AtomStyleAction {
+  const sheet = getStyleSheet()
+  const style: Record<string, AtomStyleClassNames> = {}
   for (const configKey in styleConfig) {
     const config = styleConfig[configKey]
     const atomRawStyle: AtomRawStyle = {}
@@ -51,9 +42,23 @@ export function atomStyle(styleConfig: AtomStyleConfig, sheet?: UStyleSheet) {
         atomRawStyle[_key + stylePropertyKey] = { t: 2, k: _key + stylePropertyKey, v: stylePropertyVal }
       }
     }
-    cls[configKey] = sheet.insertAtom(atomRawStyle)
+    style[configKey] = sheet.insertAtom(atomRawStyle)
   }
 
-  const action: AtomStyleAction = { t: 1, __$usa_style_: true, ...cls } as any
-  return action
+  const deleteAtom: AtomStyleDelete = (k, pk) => {
+    const cls = style[k]
+    if (!cls) return
+
+    const _cls: string[] = []
+    if (pk) {
+      for (const _pk of pk) {
+        const c = cls[_pk]
+        if (c) _cls.push(c)
+      }
+    } else {
+      _cls.push(...Object.values(cls))
+    }
+    sheet.deleteAtom(_cls)
+  }
+  return { t: 1, __$usa_style_: true, style, $delete: deleteAtom }
 }
