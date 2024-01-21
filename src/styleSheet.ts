@@ -1,10 +1,11 @@
-import { AtomRawStyle, AtomStyleClassNames, DeppRawStyle, DeppStyleClassNames } from "./style.type"
+import { AtomRawStyle, DeppRawStyle } from "./style.type"
 
 export type UStyleSheet = {
-  insertAtom(style: AtomRawStyle): AtomStyleClassNames
-  deleteAtom(cls: string[]): void
-  insertDeep(style: DeppRawStyle): DeppStyleClassNames
-  deleteDeep(cls: string[]): void
+  insertAtomStyle(style: AtomRawStyle): string
+  deleteAtomStyle(cls: string[]): void
+  insertDeepStyle(style: DeppRawStyle): string
+  deleteDeepStyle(cls: string[]): void
+  injectRules(target: "atom" | "deep", type: "raw" | "rule", value: any): void
   [x: string]: any
 }
 

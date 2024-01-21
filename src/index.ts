@@ -4,7 +4,10 @@ export type { AtomStyleAction, AtomStyleConfig, AtomStyleDelete } from "./atomSt
 export { deepStyle } from "./deepStyle"
 export type { DeepStyleAction, DeepStyleConfig, DeepStyleDelete } from "./deepStyle"
 
-export type { AtomStyleClassNames, DeppStyleClassNames } from "./style.type"
+export type { ClientAtomStyleRule, ClientDeepStyleRule, NodeAtomStyleRule, NodeDeepMapRule, NodeDeepObjRule, NodeDeepStyleRule } from "./style.type"
+
+export { ClientStyleSheet } from "./ClientStyleSheet"
+export { NodeStyleSheet } from "./NodeStyleSheet"
 
 import { ClientStyleSheet } from "./ClientStyleSheet"
 import { setStyleSheet } from "./styleSheet"

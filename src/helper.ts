@@ -53,3 +53,5 @@ let count = randomSeed
 export function generateRandomHash() {
   return murmurHash((count++).toString())
 }
+
+export const deepSelectReg = /\s([a-zA-Z])/

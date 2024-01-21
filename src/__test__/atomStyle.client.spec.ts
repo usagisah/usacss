@@ -1,12 +1,11 @@
-import { AtomRule, ClientStyleSheet } from "../ClientStyleSheet"
-import { AtomStyleConfig, atomStyle } from "../atomStyle"
+import { AtomStyleConfig, ClientAtomStyleRule, ClientStyleSheet, atomStyle } from "../index"
 import { getStyleSheet, setStyleSheet } from "../styleSheet"
 
 beforeEach(() => {
   setStyleSheet(new ClientStyleSheet())
 })
 
-describe("atomStyle", () => {
+describe("atomStyle.client", () => {
   const config: AtomStyleConfig = {
     button: {
       width: "100px",
@@ -28,7 +27,7 @@ describe("atomStyle", () => {
           "height:hover": expect.any(String)
         }
       },
-      $delete: expect.anything()
+      $delete: expect.any(Function)
     })
   })
 
@@ -40,7 +39,7 @@ describe("atomStyle", () => {
 
   it("dom style content", () => {
     const res = atomStyle(config).style.button
-    const rules: AtomRule[] = getStyleSheet().atomRules
+    const rules: ClientAtomStyleRule[] = getStyleSheet().atomRules
     expect(rules.find(r => r.key === "width")).toEqual({ key: "width", hash: res.width })
     expect(rules.find(r => r.key === "height")).toEqual({ key: "height", hash: res.height })
     expect(rules.find(r => r.key === "height:hover")).toEqual({ key: "height:hover", hash: res["height:hover"] })
@@ -49,7 +48,7 @@ describe("atomStyle", () => {
   it("delete", () => {
     const res = atomStyle(config)
     res.$delete("button")
-    const rules: AtomRule[] = getStyleSheet().atomRules
+    const rules: ClientAtomStyleRule[] = getStyleSheet().atomRules
     expect(rules.length).toBe(0)
   })
 })
