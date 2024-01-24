@@ -1,6 +1,6 @@
 export type StringObj = Record<string, string>
 
-export type AtomRawStyle = { p?: string, k: string; v: string }
+export type AtomRawStyle = { p?: string; k: string; v: string }
 
 export type DeppRawStyle = { select: string[]; style: StringObj; pseudo: { key: string; val: StringObj }[] }
 
@@ -20,13 +20,21 @@ export type NodeAtomStyleRule = {
   content: string
 }
 
-export type ClientDeepStyleRule = {
-  el: HTMLStyleElement
-}
-
 export type NodeDeepStyleRule = {
+  style: StringObj
   content: string
 }
 
-export type NodeDeepMapRule = { content: string }
-export type NodeDeepObjRule = [string, NodeDeepMapRule][]
+export type Hash = (e?: string) => string
+
+export type UStyleSheet = {
+  insertAtomStyle(style: AtomRawStyle): string
+  insertAtomRules(rules: NodeAtomStyleRule[]): Record<string, string>
+  deleteAtomStyle(cls: string[]): void
+  insertDeepStyle(style: DeppRawStyle): { style: Record<string, string>; delete: () => void }
+  insertDeepRules(rules: NodeDeepStyleRule[]): {
+    style: StringObj
+    delete: () => void
+  }[]
+  [x: string]: any
+}

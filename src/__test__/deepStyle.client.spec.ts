@@ -1,8 +1,8 @@
-import { ClientDeepStyleRule, ClientStyleSheet, deepStyle } from "../index"
-import { getStyleSheet, setStyleSheet } from "../styleSheet"
+import { ClientDeepStyleRule, deepStyle } from "../index"
+import { getStyleSheet, setClientStyleSheet } from "../styleSheet"
 
 beforeEach(() => {
-  setStyleSheet(new ClientStyleSheet())
+  setClientStyleSheet()
 })
 
 describe("deepStyle.client", () => {

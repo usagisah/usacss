@@ -1,15 +1,13 @@
 import { Properties, Pseudos } from "csstype"
-import { camelToKebab } from "./helper"
-import { BaseStyleAction, DeppRawStyle } from "./style.type"
-import { getStyleSheet } from "./styleSheet"
+import { camelToKebab } from "./helper.js"
+import { BaseStyleAction, DeppRawStyle, UStyleSheet } from "./style.type"
 
 export type DeepStyleConfig = { select?: string[] } & { [K in keyof Properties]?: Properties[K] } & { [K in Pseudos]?: Properties }
 
 export type DeepStyleDelete = () => void
-export type DeepStyleAction = BaseStyleAction & { className: string; $delete: DeepStyleDelete }
+export type DeepStyleAction = BaseStyleAction & { style: Record<string, string>; $delete: DeepStyleDelete }
 
-export function deepStyle(styleConfig: DeepStyleConfig): DeepStyleAction {
-  const sheet = getStyleSheet()
+export function deepStyle(styleConfig: DeepStyleConfig, sheet: UStyleSheet): DeepStyleAction {
   const deepRawStyle: DeppRawStyle = { select: [], pseudo: [], style: {} }
   for (const key in styleConfig) {
     const val = (styleConfig as any)[key]
@@ -23,10 +21,6 @@ export function deepStyle(styleConfig: DeepStyleConfig): DeepStyleAction {
     }
     deepRawStyle.style[camelToKebab(key)] = val
   }
-  const className = sheet.insertDeepStyle(deepRawStyle)
-  const deleteDeep: DeepStyleDelete = () => {
-    sheet.deleteDeepStyle([className])
-  }
-
-  return { t: 2, __$usa_style_: true, className, $delete: deleteDeep }
+  const res = sheet.insertDeepStyle(deepRawStyle)
+  return { t: 2, __$usa_style_: true, style: res.style, $delete: res.delete }
 }

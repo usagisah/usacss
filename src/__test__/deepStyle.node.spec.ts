@@ -1,8 +1,8 @@
-import { ClientDeepStyleRule, NodeDeepMapRule, NodeStyleSheet, deepStyle } from "../index"
-import { getStyleSheet, setStyleSheet } from "../styleSheet"
+import { ClientDeepStyleRule, NodeDeepMapRule, deepStyle } from "../index"
+import { getStyleSheet, setNodeStyleSheet } from "../styleSheet"
 
 beforeEach(() => {
-  setStyleSheet(new NodeStyleSheet())
+  setNodeStyleSheet()
 })
 
 describe("deepStyle.node", () => {

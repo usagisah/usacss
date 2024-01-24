@@ -1,9 +1,10 @@
-import { AtomStyleConfig, NodeStyleSheet, atomStyle, deepStyle } from "../"
-import { getStyleSheet, setStyleSheet } from "../styleSheet"
+import { AtomStyleConfig, atomStyle, deepStyle } from "../"
+import { NodeStyleSheet } from "../NodeStyleSheet"
+import { getStyleSheet, setNodeStyleSheet } from "../styleSheet"
 
 describe("sheet.node", () => {
   beforeEach(() => {
-    setStyleSheet(new NodeStyleSheet())
+    setNodeStyleSheet()
   })
 
   const atomConfig: AtomStyleConfig = {
@@ -80,5 +81,28 @@ describe("sheet.node", () => {
         [pseudoCls, { content: `.${pseudoCls} .c1 .c2:hover{color:pink;}` }]
       ]
     })
+  })
+
+  it("injectRules type=rule", () => {
+    const sheet = getStyleSheet() as NodeStyleSheet
+    atomStyle(atomConfig).style.button
+    const aJson = sheet.atomStyleToJson()
+    const aStr = sheet.atomStyleToString()
+
+    deepStyle(deepStyleConfig)
+    const dStr = sheet.deepStyleToJson()
+    const dJson = sheet.deepStyleToString()
+
+    sheet.atomRules = []
+    sheet.deepRules.clear()
+    sheet.injectRules("atom", "rule", aJson)
+    // sheet.injectRules("deep", "rule", dJson)
+
+    console.log(  )
+
+    // expect(sheet.atomStyleToString()).toEqual(aStr)
+    // expect(sheet.atomStyleToJson()).toEqual(aJson)
+    // expect(sheet.deepStyleToString()).toEqual(dStr)
+    // expect(sheet.deepStyleToJson()).toEqual(dJson)
   })
 })

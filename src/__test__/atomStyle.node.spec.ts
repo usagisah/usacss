@@ -1,8 +1,8 @@
-import { AtomStyleConfig, NodeAtomStyleRule, NodeStyleSheet, atomStyle } from "../index"
-import { getStyleSheet, setStyleSheet } from "../styleSheet"
+import { AtomStyleConfig, NodeAtomStyleRule, atomStyle } from "../index"
+import { getStyleSheet, setNodeStyleSheet } from "../styleSheet"
 
 beforeEach(() => {
-  setStyleSheet(new NodeStyleSheet())
+  setNodeStyleSheet()
 })
 
 describe("atomStyle.node", () => {

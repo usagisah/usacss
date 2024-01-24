@@ -1,8 +1,8 @@
-import { AtomStyleConfig, ClientAtomStyleRule, ClientStyleSheet, atomStyle } from "../index"
-import { getStyleSheet, setStyleSheet } from "../styleSheet"
+import { AtomStyleConfig, ClientAtomStyleRule, atomStyle } from "../index"
+import { getStyleSheet, setClientStyleSheet } from "../styleSheet"
 
 beforeEach(() => {
-  setStyleSheet(new ClientStyleSheet())
+  setClientStyleSheet()
 })
 
 describe("atomStyle.client", () => {

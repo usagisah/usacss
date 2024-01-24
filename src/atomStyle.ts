@@ -1,7 +1,6 @@
 import { Properties, Pseudos } from "csstype"
-import { camelToKebab, isPlainObject } from "./helper"
-import { BaseStyleAction, StringObj } from "./style.type"
-import { getStyleSheet } from "./styleSheet"
+import { camelToKebab, isPlainObject } from "./helper.js"
+import { BaseStyleAction, StringObj, UStyleSheet } from "./style.type"
 
 export type AtomStyleConfig = {
   [key: string]: {
@@ -16,10 +15,8 @@ export type AtomStyleAction = BaseStyleAction & {
   $delete: AtomStyleDelete
 }
 
-export function atomStyle(styleConfig: AtomStyleConfig): AtomStyleAction {
-  const sheet = getStyleSheet()
+export function atomStyle(styleConfig: AtomStyleConfig, sheet: UStyleSheet): AtomStyleAction {
   const groupStyle: Record<string, StringObj> = {}
-
   for (const configKey in styleConfig) {
     const config = styleConfig[configKey]
     const atomStyle: StringObj = {}

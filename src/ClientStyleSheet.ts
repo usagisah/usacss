@@ -1,47 +1,45 @@
-import { deepSelectReg, murmurHash } from "./helper"
-import { AtomRawStyle, ClientAtomStyleRule, ClientDeepStyleRule, DeppRawStyle, NodeAtomStyleRule, NodeDeepObjRule, StringObj } from "./style.type"
-import { UStyleSheet } from "./styleSheet"
+import { EmptyFunc, deepSelectReg } from "./helper.js"
+import { AtomRawStyle, ClientAtomStyleRule, DeppRawStyle, Hash, NodeAtomStyleRule, NodeDeepStyleRule, StringObj, UStyleSheet } from "./style.type"
 
 export class ClientStyleSheet implements UStyleSheet {
   atomStyle: HTMLStyleElement
   atomRules: ClientAtomStyleRule[] = []
-  deepRules = new Map<string, ClientDeepStyleRule>()
 
-  constructor() {
+  constructor(public hash: Hash) {
     const { el, append } = this.createStyle({ "data-usa-atom": "" })
     this.atomStyle = el
     append()
   }
 
-  injectRules(target: "atom" | "deep", type: "raw" | "rule", value: any) {
-    if (target === "atom") type === "rule" ? this.insertAtomRules(value) : this.insertAtomStyle(value)
-    else type === "rule" ? this.insertDeepRules(value) : this.insertDeepStyle(value)
-  }
-
   insertAtomStyle(rawStyle: AtomRawStyle) {
     const { k, v, p = "" } = rawStyle
-    const _k = k + p
-    const rule = this.atomRules.find(r => r.key == _k)
+    const key = k + p + v
+    const rule = this.atomRules.find(r => (r.key === key))
     if (rule) {
       return rule.hash
     }
 
-    const hash = "a" + murmurHash(_k) + p
-    const content = `.${hash}{${k}:${v}}`
+    const hash = "a" + this.hash(key)
+    const content = `.${hash}${p}{${k}:${v}}`
     this.atomStyle.sheet.insertRule(content, this.atomRules.length)
-    this.atomRules.push({ key: _k, hash })
+    this.atomRules.push({ key, hash })
     return hash
   }
 
   insertAtomRules(rules: NodeAtomStyleRule[]) {
+    const style: StringObj = {}
     const atomRules = this.atomRules
     for (const rule of rules) {
-      if (atomRules.length > 0 && atomRules.some(r => r.key === rule.key)) {
+      const _rule = atomRules.find(r => r.key === rule.key)
+      if (atomRules.length > 0 && _rule) {
+        style[rule.key] = _rule.hash
         continue
       }
       this.atomStyle.sheet.insertRule(rule.content, this.atomRules.length)
+      style[rule.key] = rule.hash
       atomRules.push(rule)
     }
+    return style
   }
 
   deleteAtomStyle(cls: string[]) {
@@ -56,61 +54,56 @@ export class ClientStyleSheet implements UStyleSheet {
 
   insertDeepStyle(rawStyle: DeppRawStyle) {
     const { select, style, pseudo } = rawStyle
+    const _style: StringObj = {}
 
     let preSelect = ""
     for (const sel of select) {
       preSelect += ` ${sel}`.replace(deepSelectReg, " .$1")
     }
 
-    const styleContent = this.styleObjToString(style)
+    let styleContent = this.styleObjToString(style)
     let styleHash = ""
     if (styleContent.length > 0) {
-      styleHash = "d" + murmurHash(styleContent)
-      if (!this.deepRules.has(styleHash)) {
-        const { el, append } = this.createStyle({ "data-usa-deep": "" }, `.${styleHash}${preSelect}{${styleContent}}`)
-        this.deepRules.set(styleHash, { el })
-        append()
-      }
+      styleHash = "d" + this.hash()
+      styleContent = `.${styleHash}${preSelect}{${styleContent}}`
+      _style.value = styleHash
     }
 
     let pseudoContent = ""
+    let pseudoHash = styleHash
     for (const { key, val } of pseudo) {
       const str = this.styleObjToString(val)
-      pseudoContent += `_?_${preSelect}${key}{${str}}`
+      if (str.length === 0) continue
+      if (!pseudoHash) pseudoHash = "d" + this.hash()
+      pseudoContent += `.${pseudoHash}${preSelect}${key}{${str}}`
+      _style[key] = pseudoHash + key
     }
-    let pseudoHash = ""
-    if (pseudoContent.length > 0) {
-      pseudoHash = "d" + murmurHash(pseudoContent)
-      if (!this.deepRules.has(pseudoHash)) {
-        const { el, append } = this.createStyle({ "deep-usa-pseudo": "" }, pseudoContent.replace(/_\?_/g, "." + pseudoHash))
-        this.deepRules.set(pseudoHash, { el })
-        append()
-      }
-    }
-    return (styleHash + " " + pseudoHash).trim()
-  }
 
-  insertDeepRules(rules: NodeDeepObjRule) {
-    for (const [hash, rule] of rules) {
-      if (!this.deepRules.has(hash)) {
-        const { el, append } = this.createStyle({ "deep-usa-pseudo": "" }, rule.content)
-        this.deepRules.set(hash, { el })
-        append()
-      }
-    }
-  }
-
-  deleteDeepStyle(classNames: string[]) {
-    for (const item of classNames) {
-      for (const cls of item.split(" ")) {
-        const rule = this.deepRules.get(cls)
-        if (rule) {
-          const { el } = rule
+    const content = styleContent + pseudoContent
+    if (content.length > 0) {
+      const { el, append } = this.createStyle({ "data-usa-deep": "" }, content)
+      append()
+      return {
+        style: _style,
+        delete: () => {
           el.parentElement.removeChild(el)
-          this.deepRules.delete(cls)
         }
       }
     }
+    return { style: _style, delete: EmptyFunc }
+  }
+
+  insertDeepRules(rules: NodeDeepStyleRule[]) {
+    return rules.map(rule => {
+      const { el, append } = this.createStyle({ "data-usa-deep": "" }, rule.content)
+      append()
+      return {
+        style: rule.style,
+        delete: () => {
+          el.parentElement.removeChild(el)
+        }
+      }
+    })
   }
 
   createStyle(attrs: StringObj = {}, content = "") {
