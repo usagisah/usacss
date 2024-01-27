@@ -1,62 +1,48 @@
 import { Properties, Pseudos } from "csstype"
 import { camelToKebab, isPlainObject } from "./helper.js"
-import { BaseStyleAction, StringObj, UStyleSheet } from "./style.type"
+import { BaseStyle, StringObj, UsaStyleSheet } from "./style.type.js"
 
-export type AtomStyleConfig = {
-  [key: string]: {
-    [K in keyof Properties]: Properties[K] | { [N in Pseudos | "value"]?: Properties[K] }
+export type AtomStyleConfig = Record<
+  string,
+  {
+    [K in keyof Properties]: { value?: Properties[K] } | Properties[K] | { [N in Pseudos]?: Properties[K] }
   }
-}
+>
 
 export type AtomStyleDelete = (key: string, propertyKeys?: string[]) => void
 
-export type AtomStyleAction = BaseStyleAction & {
+export type AtomStyle = BaseStyle & {
   style: Record<string, Record<string, string>>
-  $delete: AtomStyleDelete
 }
 
-export function atomStyle(styleConfig: AtomStyleConfig, sheet: UStyleSheet): AtomStyleAction {
+export function atomStyle(styleConfig: AtomStyleConfig, sheet: UsaStyleSheet): AtomStyle {
   const groupStyle: Record<string, StringObj> = {}
-  for (const configKey in styleConfig) {
-    const config = styleConfig[configKey]
+  for (const groupKey in styleConfig) {
+    const group = styleConfig[groupKey]
     const atomStyle: StringObj = {}
-    for (const key in config) {
-      const _key = camelToKebab(key)
-      const val = (config as any)[key]
-      if (typeof val === "string") {
-        atomStyle[_key] = sheet.insertAtomStyle({ k: _key, v: val })
+    for (const styleKey in group) {
+      const _styleKey = camelToKebab(styleKey)
+
+      const styleVal = (group as any)[styleKey]
+      if (typeof styleVal === "string") {
+        atomStyle[_styleKey] = sheet.insertAtomStyle({ k: _styleKey, v: styleVal })
         continue
       }
 
-      if (!isPlainObject(val)) {
+      if (!isPlainObject(_styleKey)) {
         continue
       }
-      for (const stylePropertyKey in val) {
-        const stylePropertyVal: string = val[stylePropertyKey]
-        if (stylePropertyKey === "value") {
-          atomStyle[_key] = sheet.insertAtomStyle({ k: _key, v: stylePropertyVal })
+      for (const styleValKey in styleVal) {
+        const styleValVal: string = styleVal[styleValKey]
+        if (styleValKey === "value") {
+          atomStyle[_styleKey] = sheet.insertAtomStyle({ k: _styleKey, v: styleValVal })
           continue
         }
-        atomStyle[_key + stylePropertyKey] = sheet.insertAtomStyle({ p: stylePropertyKey, k: _key, v: stylePropertyVal })
+        atomStyle[_styleKey + styleValKey] = sheet.insertAtomStyle({ p: styleValKey, k: _styleKey, v: styleValVal })
       }
     }
-    groupStyle[configKey] = atomStyle
+    groupStyle[groupKey] = atomStyle
   }
 
-  const deleteAtom: AtomStyleDelete = (k, pk) => {
-    const atomStyle = groupStyle[k]
-    if (!atomStyle) return
-
-    const _cls: string[] = []
-    if (pk) {
-      for (const _pk of pk) {
-        const c = atomStyle[_pk]
-        if (c) _cls.push(c)
-      }
-    } else {
-      _cls.push(...Object.values(atomStyle))
-    }
-    sheet.deleteAtomStyle(_cls)
-  }
-  return { t: 1, __$usa_style_: true, style: groupStyle, $delete: deleteAtom }
+  return { t: 1, __$usa_style_: true, style: groupStyle }
 }

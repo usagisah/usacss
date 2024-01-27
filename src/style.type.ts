@@ -4,37 +4,30 @@ export type AtomRawStyle = { p?: string; k: string; v: string }
 
 export type DeppRawStyle = { select: string[]; style: StringObj; pseudo: { key: string; val: StringObj }[] }
 
-export type BaseStyleAction = {
+export type BaseStyle = {
   __$usa_style_: boolean
   t: number
 }
 
-export type ClientAtomStyleRule = {
-  key: string
-  hash: string
-}
+export type AtomStyleRule = { key: string; hash: string }
+export type AtomStyleRuleMap = Map<string, AtomStyleRule>
+export type AtomStyleJsonRules = [string, AtomStyleRule][]
+export type AtomStyleInsertDom = (rawContent: string, rule: AtomStyleRule) => void
+export type AtomStyleDeleteDom = (hash: string) => void
 
-export type NodeAtomStyleRule = {
-  key: string
-  hash: string
-  content: string
-}
-
-export type NodeDeepStyleRule = {
-  style: StringObj
-  content: string
-}
+export type DeepStyleRule = { el?: HTMLStyleElement; content?: string; used: number }
+export type DeepStyleRuleMap = Map<string, DeepStyleRule>
+export type DeepStyleJsonRules = [string, DeepStyleRule][]
+export type DeepStyleInsertDom = (rule: DeepStyleRule) => HTMLStyleElement | undefined
 
 export type Hash = (e?: string) => string
 
-export type UStyleSheet = {
-  insertAtomStyle(style: AtomRawStyle): string
-  insertAtomRules(rules: NodeAtomStyleRule[]): Record<string, string>
-  deleteAtomStyle(cls: string[]): void
-  insertDeepStyle(style: DeppRawStyle): { style: Record<string, string>; delete: () => void }
-  insertDeepRules(rules: NodeDeepStyleRule[]): {
-    style: StringObj
-    delete: () => void
-  }[]
-  [x: string]: any
+export type UsaStyleSheet = {
+  insertAtomStyle(style: AtomRawStyle, insertDom?: AtomStyleInsertDom): string
+  insertAtomRules(rules: AtomStyleJsonRules, insertDom?: boolean | AtomStyleInsertDom): Record<string, string>
+  deleteAtomStyle(cls: string[], callback?: AtomStyleDeleteDom): void
+  insertDeepStyle(style: DeppRawStyle, insertDom?: DeepStyleInsertDom): string
+  insertDeepRules(rules: DeepStyleJsonRules, insertDom?: boolean | DeepStyleInsertDom): string[]
+  deleteDeepStyle(cls: (string | { class: string; force: boolean })[]): void
+  toJson(): { atomStyle: AtomStyleJsonRules; deepStyle: DeepStyleJsonRules }
 }

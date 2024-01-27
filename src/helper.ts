@@ -1,3 +1,5 @@
+import { StringObj } from "./style.type.js"
+
 export function isPlainObject(v: unknown): v is Record<string, any> {
   return Object.prototype.toString.call(v) === "[object Object]"
 }
@@ -7,6 +9,17 @@ export function camelToKebab(camelCase: string) {
   return camelCase.replace(_camelToKebabReg, "$1-$2").toLowerCase()
 }
 
-export const deepSelectReg = /\s([a-zA-Z])/
+export function styleObjToString(obj: StringObj, prefix = "") {
+  let str = ""
+  for (const k in obj) str += `${prefix}${k}:${obj[k]};`
+  return str
+}
 
-export const EmptyFunc = () => {}
+export function createStyle(attrs: StringObj = {}, content = "") {
+  const el = document.createElement("style")
+  for (const key in attrs) {
+    el.setAttribute(key, attrs[key])
+  }
+  el.innerHTML = content
+  return { el, append: () => document.head.appendChild(el) }
+}

@@ -1,4 +1,4 @@
-import { Hash } from "./style.type"
+import { Hash } from "./style.type.js"
 
 /**
  * 引用自 murmurhash

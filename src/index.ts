@@ -1,10 +1,10 @@
 export { atomStyle } from "./atomStyle.js"
-export type { AtomStyleAction, AtomStyleConfig, AtomStyleDelete } from "./atomStyle"
+export type { AtomStyle, AtomStyleConfig, AtomStyleDelete } from "./atomStyle.js"
 
 export { deepStyle } from "./deepStyle.js"
-export type { DeepStyleAction, DeepStyleConfig, DeepStyleDelete } from "./deepStyle"
+export type { DeepStyle, DeepStyleConfig, DeepStyleDelete } from "./deepStyle.js"
 
-export type { ClientAtomStyleRule, NodeAtomStyleRule, NodeDeepStyleRule, Hash, UStyleSheet } from "./style.type"
+export type { AtomRawStyle, AtomStyleDeleteDom, AtomStyleInsertDom, AtomStyleJsonRules, AtomStyleRule, BaseStyle, DeepStyleInsertDom, DeepStyleJsonRules, DeepStyleRule, DeppRawStyle, UsaStyleSheet } from "./style.type.js"
 
 export { ClientStyleSheet } from "./ClientStyleSheet.js"
 export { NodeStyleSheet } from "./NodeStyleSheet.js"

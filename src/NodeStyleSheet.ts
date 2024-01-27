@@ -1,125 +1,159 @@
-import { EmptyFunc, deepSelectReg } from "./helper.js"
-import { AtomRawStyle, DeppRawStyle, Hash, NodeAtomStyleRule, NodeDeepStyleRule, StringObj, UStyleSheet } from "./style.type"
+import { deepStyleContentHashReg, deepStyleSelectReg } from "./constants.js"
+import { styleObjToString } from "./helper.js"
+import { AtomRawStyle, AtomStyleDeleteDom, AtomStyleInsertDom, AtomStyleJsonRules, AtomStyleRuleMap, DeepStyleInsertDom, DeepStyleJsonRules, DeepStyleRule, DeepStyleRuleMap, DeppRawStyle, Hash, StringObj, UsaStyleSheet } from "./style.type.js"
 
-export class NodeStyleSheet implements UStyleSheet {
-  atomRules: NodeAtomStyleRule[] = []
-  deepRules: NodeDeepStyleRule[] = []
+export class NodeStyleSheet implements UsaStyleSheet {
+  atomRules: AtomStyleRuleMap = new Map()
+  deepRules: DeepStyleRuleMap = new Map()
 
   constructor(public hash: Hash) {}
 
-  insertAtomStyle(rawStyle: AtomRawStyle) {
+  insertAtomStyle(rawStyle: AtomRawStyle, insertDom?: AtomStyleInsertDom) {
     const { k, v, p = "" } = rawStyle
-    const key = k + p + v
-    const rule = this.atomRules.find(r => (r.key === key))
+    const rawContent = `${p}{${k}:${v}}`
+
+    const rule = this.atomRules.get(rawContent)
     if (rule) {
       return rule.hash
     }
 
-    const hash = "a" + this.hash(key)
-    const content = `.${hash}${p}{${k}:${v}}`
-    this.atomRules.push({ key, hash, content })
+    const hash = "a" + this.hash(rawContent)
+    const atomRule = { hash, key: k }
+    insertDom?.(rawContent, atomRule)
+
+    this.atomRules.set(rawContent, atomRule)
     return hash
   }
 
-  insertAtomRules(rules: NodeAtomStyleRule[]) {
+  insertAtomRules(jsonRules: AtomStyleJsonRules, insertDom: boolean | AtomStyleInsertDom = false) {
     const style: StringObj = {}
-    const atomRules = this.atomRules
-    for (const rule of rules) {
-      const _rule = atomRules.find(r => r.key === rule.key)
-      if (atomRules.length > 0 && _rule) {
-        style[rule.key] = _rule.hash
-        continue
+    for (const [rawContent, rule] of jsonRules) {
+      const { hash, key } = rule
+      const _rule = this.atomRules.get(rawContent)
+      if (!_rule) {
+        if (typeof insertDom === "function") {
+          insertDom(rawContent, rule)
+        }
+        this.atomRules.set(rawContent, rule)
       }
-      style[rule.key] = rule.hash
-      atomRules.push(rule)
+      style[key] = hash
     }
     return style
   }
 
-  deleteAtomStyle(cls: string[]) {
-    for (const c of cls) {
-      const index = this.atomRules.findIndex(r => r.hash === c)
-      if (index > -1) {
-        this.atomRules.splice(index, 1)
+  deleteAtomStyle(cls: string[], callback?: AtomStyleDeleteDom) {
+    const deleteRawContents: string[] = []
+    this.atomRules.forEach(({ hash }, rawContent) => {
+      if (cls.includes(hash)) {
+        deleteRawContents.push(rawContent)
+        callback?.(hash)
       }
-    }
+    })
+    deleteRawContents.forEach(k => this.atomRules.delete(k))
   }
 
-  insertDeepStyle(rawStyle: DeppRawStyle) {
+  insertDeepStyle(rawStyle: DeppRawStyle, insertDom?: DeepStyleInsertDom) {
     const { select, style, pseudo } = rawStyle
-    const _style: StringObj = {}
 
     let preSelect = ""
     for (const sel of select) {
-      preSelect += ` ${sel}`.replace(deepSelectReg, " .$1")
+      preSelect += ` ${sel}`.replace(deepStyleSelectReg, " .$1")
     }
 
-    let styleContent = this.styleObjToString(style)
-    let styleHash = ""
-    if (styleContent.length > 0) {
-      styleHash = "d" + this.hash()
-      styleContent = `${`.${styleHash}${preSelect}`}{${styleContent}}`
-      _style.value = styleHash
-    }
-
-    let pseudoContent = ""
-    let pseudoHash = styleHash
+    let deepStyleRawContent = styleObjToString(style)
     for (const { key, val } of pseudo) {
-      const str = this.styleObjToString(val)
-      if (str.length === 0) continue
-      if (!pseudoHash) pseudoHash = "d" + this.hash()
-      pseudoContent += `.${pseudoHash}${preSelect}${key}{${str}}`
-      _style[key] = pseudoHash + key
+      const str = styleObjToString(val)
+      if (str.length === 0) {
+        continue
+      }
+      deepStyleRawContent += `._#hash_#${preSelect}${key}{${str}}`
     }
 
-    const content = styleContent + pseudoContent
-    if (content.length > 0) {
-      this.deepRules.push({ style: _style, content })
-      return {
-        style: _style,
-        delete: () => {
-          const index = this.deepRules.findIndex(v => v.style === _style)
-          if (index > -1) this.deepRules.splice(index, 1)
-        }
-      }
+    const hash = "d" + this.hash(deepStyleRawContent)
+    const rule = this.deepRules.get(hash)
+    if (rule) {
+      rule.used++
+      return hash
     }
-    return { style: _style, delete: EmptyFunc }
+
+    const deepStyleDomContent = deepStyleRawContent.replace(deepStyleContentHashReg, hash)
+    const _rule: DeepStyleRule = { content: deepStyleDomContent, used: 1, el: undefined }
+    _rule.el = insertDom?.(_rule)
+    this.deepRules.set(hash, _rule)
+
+    return hash
   }
 
-  insertDeepRules(rules: NodeDeepStyleRule[]) {
-    return rules.map(rule => {
-      this.deepRules.push({ ...rule })
-      return {
-        style: rule.style,
-        delete: () => {
-          const index = this.deepRules.findIndex(r => r.style === rule.style)
-          if (index > -1) this.deepRules.splice(index, 1)
-        }
+  deleteDeepStyle(cls: (string | { class: string; force: boolean })[]) {
+    for (const item of cls) {
+      let hash: string
+      let force = false
+      let rule: DeepStyleRule
+      if (typeof item === "string") {
+        hash = item
+        rule = this.deepRules.get(item)
+      } else {
+        force = item.force
+        hash = item.class
+        rule = this.deepRules.get(hash)
       }
+      if (!rule) {
+        continue
+      }
+      const { used, el } = rule
+      if (force || used <= 1) {
+        this.deepRules.delete(hash)
+        if (el) {
+          el.parentElement.removeChild(el)
+          rule.el = undefined
+        }
+        continue
+      }
+      rule.used--
+    }
+  }
+
+  insertDeepRules(jsonRules: DeepStyleJsonRules, insertDom: boolean | DeepStyleInsertDom = false) {
+    return jsonRules.map(([hash, rule]) => {
+      let _rule = this.deepRules.get(hash)
+      if (!_rule) {
+        let _el = rule.el
+        _rule = { el: _el, used: 0, content: rule.content }
+
+        if (!_el && typeof insertDom === "function") {
+          _rule.el = insertDom(_rule)
+        }
+        this.deepRules.set(hash, _rule)
+      }
+      return hash
     })
   }
 
-  styleObjToString(obj: StringObj, prefix = "") {
-    let str = ""
-    for (const k in obj) str += `${prefix}${k}:${obj[k]};`
-    return str
-  }
-
   toString() {
-    let atomContent = ""
-    for (const item of this.atomRules) {
-      atomContent += item.content
-    }
-
-    let deepContent = ""
-    for (const item of this.deepRules) {
-      deepContent += item.content
-    }
-
-    return atomContent + deepContent
+    let styleContent = ""
+    this.atomRules.forEach(({ hash }, rawContent) => {
+      styleContent += `.${hash}${rawContent}`
+    })
+    this.deepRules.forEach(rule => {
+      styleContent += rule.content
+    })
+    return styleContent
   }
+
+  // toHTMLString() {
+  //   let html = ""
+  //   this.atomRules.forEach(({ hash }, rawContent) => {
+  //     styleContent += `.${hash}${rawContent}`
+  //   })
+  //   this.deepRules.forEach(rule => {
+  //     styleContent += rule.content
+  //   })
+  // }
 
   toJson() {
-    return { atom: [...this.atomRules], deep: [...this.deepRules] }
+    return {
+      atomStyle: Array.from(this.atomRules),
+      deepStyle: Array.from(this.deepRules)
+    }
   }
 }
