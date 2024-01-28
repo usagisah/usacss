@@ -1,33 +1,43 @@
 import { NodeStyleSheet } from "./NodeStyleSheet.js"
 import { atomStyleTag, deepStyleTag } from "./constants.js"
 import { createStyle } from "./helper.js"
-import { AtomRawStyle, AtomStyleInsertDom, AtomStyleJsonRules, DeepStyleJsonRules, DeppRawStyle, Hash } from "./style.type.js"
+import { AtomStyleInsertCallback, DeepStyleInsertCallback, UsaStyleSheet } from "./style.type.js"
 
-export class ClientStyleSheet extends NodeStyleSheet {
+export class ClientStyleSheet extends NodeStyleSheet implements UsaStyleSheet {
   atomStyle: HTMLStyleElement
   atomHashRules: string[] = []
 
-  constructor(public hash: Hash) {
-    super(hash)
+  constructor(init = true) {
+    super()
+    if (init) {
+      this.createAtomNode()
+    }
+
+    this.insertAtomStyle = this.#createInsertAtom("insertAtomStyle") as any
+    this.insertAtomRules = this.#createInsertAtom("insertAtomRules") as any
+    this.insertDeepStyle = this.#createInsertDeep("insertDeepStyle") as any
+    this.insertDeepRules = this.#createInsertDeep("insertDeepRules") as any
+  }
+
+  createAtomNode() {
     const { el, append } = createStyle({ [atomStyleTag]: "" })
     this.atomStyle = el
     append()
+    return el
   }
 
-  insertAtomStyle(rawStyle: AtomRawStyle) {
-    return super.insertAtomStyle(rawStyle, (rawContent, { hash }) => {
-      this.atomStyle.sheet.insertRule(`.${hash}${rawContent}`, this.atomHashRules.length)
-      this.atomHashRules.push(hash)
-    })
-  }
-
-  insertAtomRules(jsonRules: AtomStyleJsonRules, insertDom: boolean | AtomStyleInsertDom = true) {
-    return super.insertAtomRules(jsonRules, (rawContent, { hash }) => {
-      if (insertDom === true) {
-        this.atomStyle.sheet.insertRule(`.${hash}${rawContent}`, this.atomRules.size)
+  #createInsertAtom(name: "insertAtomStyle" | "insertAtomRules") {
+    return (value: any, callback?: AtomStyleInsertCallback) => {
+      return super[name](value, (rawContent, rule) => {
+        const res = callback?.(rawContent, rule)
+        if (res === false) {
+          return
+        }
+        const { hash } = rule
+        this.atomStyle.sheet.insertRule(`.${hash}${rawContent}`, this.atomHashRules.length)
         this.atomHashRules.push(hash)
-      }
-    })
+      })
+    }
   }
 
   deleteAtomStyle(cls: string[]) {
@@ -38,21 +48,17 @@ export class ClientStyleSheet extends NodeStyleSheet {
     })
   }
 
-  insertDeepStyle(rawStyle: DeppRawStyle) {
-    return super.insertDeepStyle(rawStyle, rule => {
-      const { el, append } = createStyle({ [deepStyleTag]: "" }, rule.content)
-      append()
-      return el
-    })
-  }
-
-  insertDeepRules(jsonRules: DeepStyleJsonRules, insertDom: boolean = true) {
-    return super.insertDeepRules(jsonRules, rule => {
-      if (insertDom) {
-        const { el, append } = createStyle({ [deepStyleTag]: "" }, rule.content)
-        append()
-        return el
-      }
-    })
+  #createInsertDeep(name: "insertDeepStyle" | "insertDeepRules") {
+    return (value: any, callback?: DeepStyleInsertCallback) => {
+      return super[name](value, (hash, rule) => {
+        let _el = callback?.(hash, rule)
+        if (!_el) {
+          const { el, append } = createStyle({ [deepStyleTag]: "" }, rule.content)
+          _el = el
+          append()
+        }
+        return _el
+      })
+    }
   }
 }

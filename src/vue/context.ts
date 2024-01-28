@@ -1,46 +1,41 @@
-import { PropType, defineComponent, h, provide } from "vue"
-import { ClientStyleSheet, NodeStyleSheet, UsaStyleSheet, hash } from "../index.js"
+import { defineComponent, h, provide, ref } from "vue"
+import { ClientStyleSheet, NodeStyleSheet, UsaStyleSheet } from "../index.js"
 
 export const cssContextKey = "__$css_provide_"
 
-export interface CssProvideContext {
+export interface CSSContext {
   sheet: UsaStyleSheet
-  hydrate: boolean
 }
 
 const isBrowser = () => !!(globalThis.window && globalThis.document)
-export const UsacssProvide = defineComponent({
-  name: "UsacssProvide",
-  props: {
-    sheet: {
-      type: Object as PropType<UsaStyleSheet>,
-      required: false
-    },
-    hydrate: {
-      type: Boolean,
-      default: false
-    },
-    app: {
-      type: Object as any,
-      required: true
-    }
-  },
-  setup(props, { expose }) {
-    const { sheet, hydrate } = props
-    const _sheet = sheet ?? (isBrowser() ? new ClientStyleSheet(hash) : new NodeStyleSheet(hash))
-    provide(cssContextKey, { sheet: _sheet, hydrate })
-    expose({ sheet: _sheet })
-    return () => {
-      return h(props.app)
-    }
-  }
-})
-
 export type UsacssProvideProps = {
   sheet?: UsaStyleSheet
   hydrate?: boolean
   app: any
+  [k: string]: any
 }
-export const createUsacssProvide = (props: UsacssProvideProps) => {
-  return h(UsacssProvide, props)
+export const createUsacssProvide = async (props: UsacssProvideProps) => {
+  const { sheet, hydrate, app, ..._props } = props
+  let _sheet: UsaStyleSheet
+  if (sheet) {
+    _sheet = sheet
+  } else if (hydrate) {
+    _sheet = new (await import("../HydrateStyleSheet.js")).HydrateStyleSheet()
+  } else {
+    _sheet = isBrowser() ? new ClientStyleSheet() : new NodeStyleSheet()
+  }
+
+  const sheetRef = ref<UsaStyleSheet>()
+  const UsacssProvide = defineComponent({
+    name: "UsacssProvide",
+    setup(_, { expose }) {
+      provide(cssContextKey, { sheet: _sheet })
+      expose({ sheet: _sheet })
+      sheetRef.value = _sheet
+      return () => {
+        return h(app)
+      }
+    }
+  })
+  return { UsacssProvide: h(UsacssProvide, _props), sheet: _sheet }
 }

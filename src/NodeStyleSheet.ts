@@ -1,16 +1,18 @@
-import { deepStyleContentHashReg, deepStyleSelectReg } from "./constants.js"
+import { atomHtmlTag, deepHtmlTag, deepStyleContentHashReg, deepStyleSelectReg } from "./constants.js"
+import { hash } from "./hash.js"
 import { styleObjToString } from "./helper.js"
-import { AtomRawStyle, AtomStyleDeleteDom, AtomStyleInsertDom, AtomStyleJsonRules, AtomStyleRuleMap, DeepStyleInsertDom, DeepStyleJsonRules, DeepStyleRule, DeepStyleRuleMap, DeppRawStyle, Hash, StringObj, UsaStyleSheet } from "./style.type.js"
+import { AtomRawStyle, AtomStyleDeleteCallback, AtomStyleInsertCallback, AtomStyleJsonRules, AtomStyleRuleMap, DeepStyleInsertCallback, DeepStyleJsonRules, DeepStyleRule, DeepStyleRuleMap, DeppRawStyle, StringObj, UsaStyleSheet } from "./style.type.js"
 
 export class NodeStyleSheet implements UsaStyleSheet {
   atomRules: AtomStyleRuleMap = new Map()
   deepRules: DeepStyleRuleMap = new Map()
+  hash = hash
 
-  constructor(public hash: Hash) {}
+  constructor() {}
 
-  insertAtomStyle(rawStyle: AtomRawStyle, insertDom?: AtomStyleInsertDom) {
+  insertAtomStyle(rawStyle: AtomRawStyle, callback?: AtomStyleInsertCallback) {
     const { k, v, p = "" } = rawStyle
-    const rawContent = `${p}{${k}:${v}}`
+    const rawContent = `${p}{${k}:${v};}`
 
     const rule = this.atomRules.get(rawContent)
     if (rule) {
@@ -19,21 +21,19 @@ export class NodeStyleSheet implements UsaStyleSheet {
 
     const hash = "a" + this.hash(rawContent)
     const atomRule = { hash, key: k }
-    insertDom?.(rawContent, atomRule)
+    callback?.(rawContent, atomRule)
 
     this.atomRules.set(rawContent, atomRule)
     return hash
   }
 
-  insertAtomRules(jsonRules: AtomStyleJsonRules, insertDom: boolean | AtomStyleInsertDom = false) {
+  insertAtomRules(jsonRules: AtomStyleJsonRules, callback?: AtomStyleInsertCallback) {
     const style: StringObj = {}
     for (const [rawContent, rule] of jsonRules) {
       const { hash, key } = rule
       const _rule = this.atomRules.get(rawContent)
       if (!_rule) {
-        if (typeof insertDom === "function") {
-          insertDom(rawContent, rule)
-        }
+        callback?.(rawContent, rule)
         this.atomRules.set(rawContent, rule)
       }
       style[key] = hash
@@ -41,7 +41,7 @@ export class NodeStyleSheet implements UsaStyleSheet {
     return style
   }
 
-  deleteAtomStyle(cls: string[], callback?: AtomStyleDeleteDom) {
+  deleteAtomStyle(cls: string[], callback?: AtomStyleDeleteCallback) {
     const deleteRawContents: string[] = []
     this.atomRules.forEach(({ hash }, rawContent) => {
       if (cls.includes(hash)) {
@@ -52,7 +52,7 @@ export class NodeStyleSheet implements UsaStyleSheet {
     deleteRawContents.forEach(k => this.atomRules.delete(k))
   }
 
-  insertDeepStyle(rawStyle: DeppRawStyle, insertDom?: DeepStyleInsertDom) {
+  insertDeepStyle(rawStyle: DeppRawStyle, callback?: DeepStyleInsertCallback) {
     const { select, style, pseudo } = rawStyle
 
     let preSelect = ""
@@ -60,7 +60,10 @@ export class NodeStyleSheet implements UsaStyleSheet {
       preSelect += ` ${sel}`.replace(deepStyleSelectReg, " .$1")
     }
 
-    let deepStyleRawContent = styleObjToString(style)
+    let deepStyleRawContent = styleObjToString(style) 
+    if (deepStyleRawContent.length > 0) {
+      deepStyleRawContent = `._#hash_#${preSelect}{${deepStyleRawContent}}`
+    }
     for (const { key, val } of pseudo) {
       const str = styleObjToString(val)
       if (str.length === 0) {
@@ -78,7 +81,7 @@ export class NodeStyleSheet implements UsaStyleSheet {
 
     const deepStyleDomContent = deepStyleRawContent.replace(deepStyleContentHashReg, hash)
     const _rule: DeepStyleRule = { content: deepStyleDomContent, used: 1, el: undefined }
-    _rule.el = insertDom?.(_rule)
+    _rule.el = callback?.(hash, _rule)
     this.deepRules.set(hash, _rule)
 
     return hash
@@ -113,20 +116,38 @@ export class NodeStyleSheet implements UsaStyleSheet {
     }
   }
 
-  insertDeepRules(jsonRules: DeepStyleJsonRules, insertDom: boolean | DeepStyleInsertDom = false) {
+  insertDeepRules(jsonRules: DeepStyleJsonRules, callback?: DeepStyleInsertCallback) {
     return jsonRules.map(([hash, rule]) => {
       let _rule = this.deepRules.get(hash)
       if (!_rule) {
-        let _el = rule.el
-        _rule = { el: _el, used: 0, content: rule.content }
-
-        if (!_el && typeof insertDom === "function") {
-          _rule.el = insertDom(_rule)
+        _rule = { el: rule.el, used: 1, content: rule.content }
+        _rule.el = callback?.(hash, _rule)
+        if (!_rule.el) {
+          throw "insertDeepRule fail. The deep-style-dom is not exist"
         }
         this.deepRules.set(hash, _rule)
+      } else {
+        _rule.used++
       }
       return hash
     })
+  }
+
+  toHTMLString() {
+    let atomHtml = ""
+    this.atomRules.forEach(({ hash }, rawContent) => {
+      atomHtml += `.${hash}${rawContent}`
+    })
+    if (atomHtml.length > 0) {
+      atomHtml = `<style ${atomHtmlTag}>${atomHtml}</style>`
+    }
+
+    let deepHtml = ""
+    this.deepRules.forEach((rule, hash) => {
+      deepHtml += `<style ${deepHtmlTag} css="${hash}">${rule.content}</style>`
+    })
+
+    return atomHtml + deepHtml
   }
 
   toString() {
@@ -139,16 +160,6 @@ export class NodeStyleSheet implements UsaStyleSheet {
     })
     return styleContent
   }
-
-  // toHTMLString() {
-  //   let html = ""
-  //   this.atomRules.forEach(({ hash }, rawContent) => {
-  //     styleContent += `.${hash}${rawContent}`
-  //   })
-  //   this.deepRules.forEach(rule => {
-  //     styleContent += rule.content
-  //   })
-  // }
 
   toJson() {
     return {

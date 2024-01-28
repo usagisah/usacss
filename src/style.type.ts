@@ -12,22 +12,24 @@ export type BaseStyle = {
 export type AtomStyleRule = { key: string; hash: string }
 export type AtomStyleRuleMap = Map<string, AtomStyleRule>
 export type AtomStyleJsonRules = [string, AtomStyleRule][]
-export type AtomStyleInsertDom = (rawContent: string, rule: AtomStyleRule) => void
-export type AtomStyleDeleteDom = (hash: string) => void
+export type AtomStyleInsertCallback = (rawContent: string, rule: AtomStyleRule) => boolean | void
+export type AtomStyleDeleteCallback = (hash: string) => void
 
 export type DeepStyleRule = { el?: HTMLStyleElement; content?: string; used: number }
 export type DeepStyleRuleMap = Map<string, DeepStyleRule>
 export type DeepStyleJsonRules = [string, DeepStyleRule][]
-export type DeepStyleInsertDom = (rule: DeepStyleRule) => HTMLStyleElement | undefined
+export type DeepStyleInsertCallback = (hash: string, rule: DeepStyleRule) => HTMLStyleElement | undefined
 
 export type Hash = (e?: string) => string
 
 export type UsaStyleSheet = {
-  insertAtomStyle(style: AtomRawStyle, insertDom?: AtomStyleInsertDom): string
-  insertAtomRules(rules: AtomStyleJsonRules, insertDom?: boolean | AtomStyleInsertDom): Record<string, string>
-  deleteAtomStyle(cls: string[], callback?: AtomStyleDeleteDom): void
-  insertDeepStyle(style: DeppRawStyle, insertDom?: DeepStyleInsertDom): string
-  insertDeepRules(rules: DeepStyleJsonRules, insertDom?: boolean | DeepStyleInsertDom): string[]
+  insertAtomStyle(style: AtomRawStyle, callback?: AtomStyleInsertCallback): string
+  insertAtomRules(rules: AtomStyleJsonRules, callback?: AtomStyleInsertCallback): Record<string, string>
+  deleteAtomStyle(cls: string[], callback?: AtomStyleDeleteCallback): void
+  insertDeepStyle(style: DeppRawStyle, callback?: DeepStyleInsertCallback): string
+  insertDeepRules(rules: DeepStyleJsonRules, callback?: DeepStyleInsertCallback): string[]
   deleteDeepStyle(cls: (string | { class: string; force: boolean })[]): void
   toJson(): { atomStyle: AtomStyleJsonRules; deepStyle: DeepStyleJsonRules }
+  toString(): string
+  toHTMLString(): string
 }

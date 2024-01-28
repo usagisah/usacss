@@ -5,7 +5,7 @@ import { Hash } from "./style.type.js"
  */
 const createBuffer = (val: string) => new TextEncoder().encode(val)
 const randomSeed = (Math.random() * 100 + 100) >>> 0
-function murmurHash(str: string | Uint8Array, seed = randomSeed): string {
+function murmurHash(str: string | Uint8Array, seed = 9): string {
   if (typeof str === "string") str = createBuffer(str)
   let l = str.length,
     h = seed ^ l,

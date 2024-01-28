@@ -1,7 +1,7 @@
 import { ShallowRef, inject, onUnmounted, shallowRef } from "vue"
 import { DeepStyle, DeepStyleConfig, DeepStyleRule, UsaStyleSheet, deepStyle as _deepStyle } from "../index.js"
-import { CssProvideContext, cssContextKey } from "./context.js"
-import { useStyleSheetActions } from "./useCssSheet.js"
+import { useStyleSheetActions } from "./actions.js"
+import { CSSContext, cssContextKey } from "./context.js"
 
 export function deepStyle(style: DeepStyleConfig) {
   return (sheet: UsaStyleSheet) => {
@@ -13,7 +13,7 @@ export function useDeepStyle(style: DeepStyleConfig): [ShallowRef<string>, (styl
 export function useDeepStyle(fn: (sheet: UsaStyleSheet) => DeepStyle): [ShallowRef<string>, (style: DeepStyleConfig) => void]
 export function useDeepStyle(rules: { __$css_rule_: boolean; value: DeepStyleRule }): [ShallowRef<string>, (style: DeepStyleConfig) => void]
 export function useDeepStyle(p: any) {
-  const { sheet } = inject<CssProvideContext>(cssContextKey)!
+  const { sheet } = inject<CSSContext>(cssContextKey)!
 
   let _delete: Function
   onUnmounted(() => _delete?.())
@@ -28,7 +28,7 @@ export function useDeepStyle(p: any) {
   }
 
   if (p.__$css_rule_) {
-    sheet.insertDeepRules((refStyle.value = p.value = p.value))
+    refStyle.value = sheet.insertDeepRules(p.value)[0]
   } else if (typeof p === "function") {
     refStyle.value = _deepStyle(p, sheet).className
   } else {

@@ -1,5 +1,5 @@
 import { Plugin } from "vite"
-import { AtomRawStyle, AtomStyle, BaseStyle, DeepStyle, NodeStyleSheet, hash } from "../index.js"
+import { AtomRawStyle, AtomStyle, BaseStyle, DeepStyle, NodeStyleSheet } from "../index.js"
 import { buildCss } from "./buildCss.js"
 
 function extractId(id: string) {
@@ -23,7 +23,7 @@ export function UsacssPlugin(config: UsacssPluginConfig = {}): Plugin[] {
     }
     try {
       const res = await buildCss(id, id + ".mjs")
-      const fileSheet = new NodeStyleSheet(hash)
+      const fileSheet = new NodeStyleSheet()
 
       const mapAtomRulesToCode = ({ style }: AtomStyle, itemSheet: FileItemStyleSheet) => {
         let code = ""
@@ -32,7 +32,7 @@ export function UsacssPlugin(config: UsacssPluginConfig = {}): Plugin[] {
           for (const hash of Object.values(style[groupKey])) {
             groupRules.push(itemSheet.getAtomRule(hash))
           }
-          code += `"${groupKey}":${JSON.stringify(groupRules)},\n`
+          code += `"${groupKey}":${JSON.stringify(groupRules)},`
         }
         return code
       }
@@ -49,9 +49,9 @@ export function UsacssPlugin(config: UsacssPluginConfig = {}): Plugin[] {
 
         const fileItemSheet = new FileItemStyleSheet()
 
-        const cssStyle: BaseStyle = val(fileSheet)
+        const cssStyle: BaseStyle = val(fileItemSheet)
         const code = cssStyle.t === 1 ? mapAtomRulesToCode(cssStyle as any, fileItemSheet) : mapDeepRulesToCode(cssStyle as any, fileItemSheet)
-        constantsRuleCode += `export const ${exposedName}={\n${code}__$css_rule_:true\n};`
+        constantsRuleCode += `export const ${exposedName}={${code}__$css_rule_:true};`
 
         const { atomStyle, deepStyle } = fileItemSheet.toJson()
         fileSheet.insertAtomRules(atomStyle)
@@ -86,7 +86,6 @@ export function UsacssPlugin(config: UsacssPluginConfig = {}): Plugin[] {
     },
     transform: transformStyleFile,
     generateBundle(_, bundle) {
-      debugger
       const cssFiles = Object.keys(bundle).filter(k => k.endsWith(".css"))
       if (cssFiles.length > 0) {
         const atomCssContent = [...cssModuleMap.values()].map(sheet => sheet.toString()).join("")
@@ -106,7 +105,7 @@ class FileItemStyleSheet extends NodeStyleSheet {
   atomHashMap = new Map()
 
   constructor() {
-    super(hash)
+    super()
   }
 
   insertAtomStyle(rawStyle: AtomRawStyle): string {
@@ -116,6 +115,7 @@ class FileItemStyleSheet extends NodeStyleSheet {
   }
 
   getAtomRule(hash: string) {
-    return this.atomRules.get(this.atomHashMap.get(hash))
+    const rawContent: string = this.atomHashMap.get(hash)
+    return [rawContent, this.atomRules.get(rawContent)] as const
   }
 }
