@@ -9,8 +9,6 @@ export type AtomStyleConfig = Record<
   }
 >
 
-export type AtomStyleDelete = (key: string, propertyKeys?: string[]) => void
-
 export type AtomStyle = BaseStyle & {
   style: Record<string, Record<string, string>>
 }

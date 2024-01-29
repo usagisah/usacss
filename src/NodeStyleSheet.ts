@@ -8,8 +8,6 @@ export class NodeStyleSheet implements UsaStyleSheet {
   deepRules: DeepStyleRuleMap = new Map()
   hash = hash
 
-  constructor() {}
-
   insertAtomStyle(rawStyle: AtomRawStyle, callback?: AtomStyleInsertCallback) {
     const { k, v, p = "" } = rawStyle
     const rawContent = `${p}{${k}:${v};}`

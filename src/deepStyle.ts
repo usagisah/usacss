@@ -3,8 +3,6 @@ import { camelToKebab } from "./helper.js"
 import { BaseStyle, DeppRawStyle, UsaStyleSheet } from "./style.type.js"
 
 export type DeepStyleConfig = ({ select?: string[] } & { [K in keyof Properties]?: Properties[K] } & { [K in Pseudos]?: Properties }) | Record<string, string>
-
-export type DeepStyleDelete = () => void
 export type DeepStyle = BaseStyle & { className: string }
 
 export function deepStyle(styleConfig: DeepStyleConfig, sheet: UsaStyleSheet): DeepStyle {
