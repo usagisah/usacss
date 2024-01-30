@@ -1,5 +1,5 @@
-import { getCurrentInstance, inject } from "vue"
-import { AtomStyle, AtomStyleConfig, AtomStyleRule, UsaStyleSheet, atomStyle as _atomStyle } from "../index.js"
+import { inject } from "vue"
+import { AtomStyleConfig, AtomStyleJsonRules, UsaStyleSheet, atomStyle as _atomStyle } from "../index.js"
 import { CSSContext, cssContextKey } from "./context.js"
 
 export function atomStyle(style: AtomStyleConfig) {
@@ -8,28 +8,21 @@ export function atomStyle(style: AtomStyleConfig) {
   }
 }
 
-export function useAtomStyle(style: AtomStyleConfig): Record<string, string>
-export function useAtomStyle(fn: (sheet: UsaStyleSheet) => any): Record<string, string>
-export function useAtomStyle(rules: Record<string, AtomStyleRule & { __$css_rule_: boolean }>): Record<string, string>
-export function useAtomStyle(p: any) {
+type UseAtomStyleConfig = AtomStyleConfig | ((sheet: UsaStyleSheet) => any) | Record<string, { r: AtomStyleJsonRules; __$css_rule_: boolean }>
+
+export function useAtomStyle(...configs: UseAtomStyleConfig[]): string {
   const { sheet } = inject<CSSContext>(cssContextKey)
   if (!sheet) throw "[usacss] It seems that there is no registration context"
-  
-  let _style: AtomStyle["style"] = {}
-  if (p.__$css_rule_) {
-    for (const key in p) {
-      if (key === "__$css_rule_") continue
-      _style[key] = sheet.insertAtomRules(p[key])
-    }
-  } else if (typeof p === "function") {
-    _style = p(sheet).style
-  } else {
-    _style = _atomStyle(p, sheet).style
-  }
 
-  const res: Record<string, string> = {}
-  for (const groupKey in _style) {
-    res[groupKey] = [...Object.values(_style[groupKey])].join(" ")
+  const classNames = []
+  for (const p of configs as any[]) {
+    if ("__$css_rule_" in p) {
+      classNames.push(...sheet.insertAtomRules(p.r))
+    } else if (typeof p === "function") {
+      classNames.push(...[...Object.values(p(sheet))].join(" "))
+    } else {
+      classNames.push(...[...Object.values(p(sheet))].join(" "))
+    }
   }
-  return res
+  return classNames.join(" ")
 }

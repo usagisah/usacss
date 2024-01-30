@@ -33,9 +33,9 @@ export class ClientStyleSheet extends NodeStyleSheet implements UsaStyleSheet {
         if (res === false) {
           return
         }
-        const { hash } = rule
-        this.atomStyle.sheet.insertRule(`.${hash}${rawContent}`, this.atomHashRules.length)
-        this.atomHashRules.push(hash)
+        const { h } = rule
+        this.atomStyle.sheet.insertRule(this.atomRuleToContent(rawContent, rule), this.atomHashRules.length)
+        this.atomHashRules.push(h)
       })
     }
   }
@@ -53,7 +53,7 @@ export class ClientStyleSheet extends NodeStyleSheet implements UsaStyleSheet {
       return super[name](value, (hash, rule) => {
         let _el = callback?.(hash, rule)
         if (!_el) {
-          const { el, append } = createStyle({ [deepStyleTag]: "" }, rule.content)
+          const { el, append } = createStyle({ [deepStyleTag]: "" }, rule.c)
           _el = el
           append()
         }

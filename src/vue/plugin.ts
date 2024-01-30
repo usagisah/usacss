@@ -1,5 +1,5 @@
 import { Plugin } from "vite"
-import { AtomRawStyle, AtomStyle, BaseStyle, DeepStyle, NodeStyleSheet } from "../index.js"
+import { NodeStyleSheet } from "../index.js"
 import { buildCss } from "./buildCss.js"
 
 function extractId(id: string) {
@@ -25,21 +25,6 @@ export function UsacssPlugin(config: UsacssPluginConfig = {}): Plugin[] {
       const res = await buildCss(id, id + ".mjs")
       const fileSheet = new NodeStyleSheet()
 
-      const mapAtomRulesToCode = ({ style }: AtomStyle, itemSheet: FileItemStyleSheet) => {
-        let code = ""
-        for (const groupKey in style) {
-          const groupRules: any[] = []
-          for (const hash of Object.values(style[groupKey])) {
-            groupRules.push(itemSheet.getAtomRule(hash))
-          }
-          code += `"${groupKey}":${JSON.stringify(groupRules)},`
-        }
-        return code
-      }
-      const mapDeepRulesToCode = ({ className }: DeepStyle, itemSheet: FileItemStyleSheet) => {
-        return `value:${JSON.stringify(itemSheet.deepRules.get(className))}`
-      }
-
       let constantsRuleCode = ""
       for (const exposedName in res) {
         if (exposedName === "default") continue
@@ -47,13 +32,13 @@ export function UsacssPlugin(config: UsacssPluginConfig = {}): Plugin[] {
         const val = res[exposedName]
         if (!(typeof val === "function")) continue
 
-        const fileItemSheet = new FileItemStyleSheet()
-
-        const cssStyle: BaseStyle = val(fileItemSheet)
-        const code = cssStyle.t === 1 ? mapAtomRulesToCode(cssStyle as any, fileItemSheet) : mapDeepRulesToCode(cssStyle as any, fileItemSheet)
-        constantsRuleCode += `export const ${exposedName}={${code}__$css_rule_:true};`
+        const fileItemSheet = new NodeStyleSheet()
+        val(fileItemSheet)
 
         const { atomStyle, deepStyle } = fileItemSheet.toJson()
+        const ruleCode = JSON.stringify(atomStyle.length > 0 ? atomStyle : deepStyle)
+        constantsRuleCode += `export const ${exposedName}={r:${ruleCode},__$css_rule_:true};`
+
         fileSheet.insertAtomRules(atomStyle)
         fileSheet.insertDeepRules(deepStyle)
       }
@@ -99,23 +84,4 @@ export function UsacssPlugin(config: UsacssPluginConfig = {}): Plugin[] {
     }
   }
   return [devPlugin, buildPlugin]
-}
-
-class FileItemStyleSheet extends NodeStyleSheet {
-  atomHashMap = new Map()
-
-  constructor() {
-    super()
-  }
-
-  insertAtomStyle(rawStyle: AtomRawStyle): string {
-    return super.insertAtomStyle(rawStyle, (k, { hash }) => {
-      this.atomHashMap.set(hash, k)
-    })
-  }
-
-  getAtomRule(hash: string) {
-    const rawContent: string = this.atomHashMap.get(hash)
-    return [rawContent, this.atomRules.get(rawContent)] as const
-  }
 }

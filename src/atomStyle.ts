@@ -1,46 +1,50 @@
 import { Properties, Pseudos } from "csstype"
+import { StyleRuleType, blankReg, mediaPseudoReg } from "./constants.js"
 import { camelToKebab, isPlainObject } from "./helper.js"
-import { BaseStyle, StringObj, UsaStyleSheet } from "./style.type.js"
+import { StringObj, UsaStyleSheet } from "./style.type.js"
 
-export type AtomStyleConfig = Record<
-  string,
-  {
-    [K in keyof Properties]: { value?: Properties[K] } | Properties[K] | { [N in Pseudos]?: Properties[K] }
-  }
->
-
-export type AtomStyle = BaseStyle & {
-  style: Record<string, Record<string, string>>
+export type AtomStyleConfig = {
+  [K in keyof Properties]: { value?: Properties[K] } | Properties[K] | { [N in Pseudos]?: Properties[K] } | Record<`@media ${string}`, Properties[K] | Properties[K]>
 }
 
-export function atomStyle(styleConfig: AtomStyleConfig, sheet: UsaStyleSheet): AtomStyle {
-  const groupStyle: Record<string, StringObj> = {}
-  for (const groupKey in styleConfig) {
-    const group = styleConfig[groupKey]
-    const atomStyle: StringObj = {}
-    for (const styleKey in group) {
-      const _styleKey = camelToKebab(styleKey)
+export type AtomStyleClassNames = Record<string, string>
+export function atomStyle(styleConfig: AtomStyleConfig, sheet: UsaStyleSheet): AtomStyleClassNames {
+  const ruleType = StyleRuleType.atom
+  const atomStyle: StringObj = {}
+  for (const styleKey in styleConfig) {
+    const _styleKey = camelToKebab(styleKey)
 
-      const styleVal = (group as any)[styleKey]
-      if (typeof styleVal === "string") {
-        atomStyle[_styleKey] = sheet.insertAtomStyle({ k: _styleKey, v: styleVal })
+    const styleVal = (styleConfig as any)[styleKey]
+    if (typeof styleVal === "string") {
+      atomStyle[_styleKey] = sheet.insertAtomStyle({ t: ruleType, k: _styleKey, v: styleVal })
+      continue
+    }
+
+    if (!isPlainObject(styleVal)) {
+      continue
+    }
+    for (const styleValKey in styleVal) {
+      const styleValVal = styleVal[styleValKey]
+      if (styleValKey === "value") {
+        atomStyle[_styleKey] = sheet.insertAtomStyle({ t: ruleType, k: _styleKey, v: styleValVal })
         continue
       }
-
-      if (!isPlainObject(_styleKey)) {
+      if (styleValKey.startsWith(":")) {
+        atomStyle[_styleKey + styleValKey] = sheet.insertAtomStyle({ t: ruleType, p: styleValKey, k: _styleKey, v: styleValVal })
         continue
       }
-      for (const styleValKey in styleVal) {
-        const styleValVal: string = styleVal[styleValKey]
-        if (styleValKey === "value") {
-          atomStyle[_styleKey] = sheet.insertAtomStyle({ k: _styleKey, v: styleValVal })
-          continue
-        }
-        atomStyle[_styleKey + styleValKey] = sheet.insertAtomStyle({ p: styleValKey, k: _styleKey, v: styleValVal })
+      if (styleValKey.startsWith("@media ")) {
+        const [queryRule, pseudo = ""] = styleValKey.split(mediaPseudoReg)
+        atomStyle[`${styleValKey}-${_styleKey + pseudo}`] = sheet.insertAtomStyle({
+          t: StyleRuleType.mediaQuery,
+          r: queryRule.replace(blankReg, " ").trim(),
+          k: _styleKey,
+          p: pseudo.trim(),
+          v: styleValVal
+        })
+        continue
       }
     }
-    groupStyle[groupKey] = atomStyle
   }
-
-  return { t: 1, __$usa_style_: true, style: groupStyle }
+  return atomStyle
 }

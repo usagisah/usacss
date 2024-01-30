@@ -1,5 +1,5 @@
 import { ClientStyleSheet } from "./ClientStyleSheet.js"
-import { atomHtmlTag, atomStyleTag, deepHtmlTag, deepStyleTag } from "./constants.js"
+import { atomHtmlTag, atomStyleTag, blankReg, deepHtmlTag, deepStyleTag } from "./constants.js"
 import { UsaStyleSheet } from "./style.type.js"
 
 export class HydrateStyleSheet extends ClientStyleSheet implements UsaStyleSheet {
@@ -20,9 +20,6 @@ export class HydrateStyleSheet extends ClientStyleSheet implements UsaStyleSheet
       if (atomNode instanceof HTMLStyleElement) {
         atomNode.removeAttribute(atomHtmlTag)
         atomNode.setAttribute(atomStyleTag, "")
-
-        const blankReg = /\s/g
-
         Array.from(atomNode.sheet.cssRules).forEach(({ cssText }, index) => {
           this.atomCacheMap.set(cssText.replace(blankReg, ""), index)
         })
@@ -53,15 +50,16 @@ export class HydrateStyleSheet extends ClientStyleSheet implements UsaStyleSheet
       insertAtomRules: this.insertAtomRules
     }
     const proxyMethod = (name: "insertAtomStyle" | "insertAtomRules", value: any) => {
-      return originMethods[name](value, (rawContent, { hash }) => {
+      return originMethods[name](value, (rawContent, rule) => {
+        const { h } = rule
         try {
-          if (this.atomHashRules.includes(hash)) {
+          if (this.atomHashRules.includes(h)) {
             return false
           }
-          const content = `.${hash}${rawContent}`
+          const content = this.atomRuleToContent(rawContent, rule)
           const index = this.atomCacheMap.get(content)
           if (index > -1) {
-            this.atomHashRules[index] = hash
+            this.atomHashRules[index] = h
             this.atomCacheMap.delete(content)
             return false
           }
