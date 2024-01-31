@@ -1,6 +1,6 @@
 import { NodeStyleSheet } from "@usacss/core"
 import { Plugin, ViteDevServer } from "vite"
-import { buildCss } from "./buildCss.js"
+import { buildCss } from "./buildCssFile.js"
 
 function extractId(id: string) {
   const index = id.indexOf("?")
