@@ -4,9 +4,9 @@ import { useStyleSheetActions } from "./actions.js"
 import { CSSContext, cssContextKey } from "./context.js"
 
 export function deepStyle(style: DeepStyleConfig) {
-  return (sheet: UsaStyleSheet) => {
+  return ((sheet: UsaStyleSheet) => {
     return _deepStyle(style, sheet)
-  }
+  }) as any as string
 }
 
 export function useDeepStyle(style: DeepStyleConfig): [ShallowRef<string>, (style: DeepStyleConfig) => void]

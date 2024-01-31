@@ -3,9 +3,9 @@ import { AtomStyleConfig, AtomStyleJsonRules, UsaStyleSheet, atomStyle as _atomS
 import { CSSContext, cssContextKey } from "./context.js"
 
 export function atomStyle(style: AtomStyleConfig) {
-  return (sheet: UsaStyleSheet) => {
+  return ((sheet: UsaStyleSheet) => {
     return _atomStyle(style, sheet)
-  }
+  }) as any as string
 }
 
 type UseAtomStyleConfig = AtomStyleConfig | ((sheet: UsaStyleSheet) => any) | Record<string, { r: AtomStyleJsonRules; __$css_rule_: boolean }>

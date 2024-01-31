@@ -15,5 +15,5 @@ export function keyframes(name: string, frames: KeyframesStyleConfig, sheet: Usa
   for (const key in frames) {
     c += `${key}{${styleObjToString((frames as any)[key])}}`
   }
-  sheet.insertAtomStyle({ t: StyleRuleType.keyframes, r: `@keyframes ${name}`, v: `{${c}}` })
+  return sheet.insertAtomStyle({ t: StyleRuleType.keyframes, r: `@keyframes ${name}`, v: `{${c}}` })
 }
