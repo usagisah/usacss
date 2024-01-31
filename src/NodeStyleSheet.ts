@@ -158,7 +158,7 @@ export class NodeStyleSheet implements UsaStyleSheet {
   toHTMLString() {
     let atomHtml = ""
     this.atomRules.forEach((rule, rawContent) => {
-      atomHtml += this.atomRuleToContent(rawContent, rule)
+      atomHtml += `/*h:${rule.h}*/${this.atomRuleToContent(rawContent, rule)}`
     })
     if (atomHtml.length > 0) {
       atomHtml = `<style ${atomHtmlTag}>${atomHtml}</style>`

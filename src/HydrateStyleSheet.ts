@@ -1,9 +1,12 @@
 import { ClientStyleSheet } from "./ClientStyleSheet.js"
-import { atomHtmlTag, atomStyleTag, blankReg, deepHtmlTag, deepStyleTag } from "./constants.js"
+import { atomHtmlTag, atomStyleTag, deepHtmlTag, deepStyleTag, hydrateExtractHashReg } from "./constants.js"
 import { UsaStyleSheet } from "./style.type.js"
 
 export class HydrateStyleSheet extends ClientStyleSheet implements UsaStyleSheet {
-  atomCacheMap = new Map<string, number>()
+  atomCacheMap = {
+    map: [] as string[],
+    cur: 0
+  }
   deepCacheMap = new Map<string, HTMLStyleElement>()
 
   constructor() {
@@ -12,22 +15,25 @@ export class HydrateStyleSheet extends ClientStyleSheet implements UsaStyleSheet
     this.#initDeepStyleMap()
     this.#createInsertAtomProxy()
     this.#createInsertDeepProxy()
+    setTimeout(() => {
+      console.log(this)
+    }, 1000)
   }
 
   #initAtomStyleMap() {
     const atomNode = document.querySelector(`[${atomHtmlTag}]`) as HTMLStyleElement
-    if (atomNode) {
-      if (atomNode instanceof HTMLStyleElement) {
-        atomNode.removeAttribute(atomHtmlTag)
-        atomNode.setAttribute(atomStyleTag, "")
-        Array.from(atomNode.sheet.cssRules).forEach(({ cssText }, index) => {
-          this.atomCacheMap.set(cssText.replace(blankReg, ""), index)
-        })
-        this.atomStyle = atomNode
-      } else {
-        this.createAtomNode()
+    if (atomNode && atomNode instanceof HTMLStyleElement) {
+      atomNode.removeAttribute(atomHtmlTag)
+      atomNode.setAttribute(atomStyleTag, "")
+      const res = atomNode.textContent.match(hydrateExtractHashReg)
+      const size = atomNode.sheet.cssRules.length
+      if (!res || res.length !== size) {
+        throw "usacss hydrate fail. The hydrate size does not equal actual rule-size"
       }
+      res.forEach(h => this.atomCacheMap.map.push(h))
+      this.atomStyle = atomNode
     }
+    this.createAtomNode()
   }
 
   #initDeepStyleMap() {
@@ -50,21 +56,22 @@ export class HydrateStyleSheet extends ClientStyleSheet implements UsaStyleSheet
       insertAtomRules: this.insertAtomRules
     }
     const proxyMethod = (name: "insertAtomStyle" | "insertAtomRules", value: any) => {
-      return originMethods[name](value, (rawContent, rule) => {
+      return originMethods[name](value, (_, rule) => {
+        const { map, cur } = this.atomCacheMap
+        const hash = map[cur]
         const { h } = rule
         try {
-          if (this.atomHashRules.includes(h)) {
-            return false
-          }
-          const content = this.atomRuleToContent(rawContent, rule)
-          const index = this.atomCacheMap.get(content)
-          if (index > -1) {
-            this.atomHashRules[index] = h
-            this.atomCacheMap.delete(content)
+          if (cur < map.length) {
+            if (h !== hash) {
+              throw `usacss hydrate fail. The current(${cur}-${hash}) hash is not equal ${h}`
+            }
+            this.atomHashRules[cur] = h
+            this.atomCacheMap.cur++
             return false
           }
         } finally {
-          if (this.atomCacheMap.size === 0) {
+          console.log(this.atomCacheMap)
+          if (map.length === 0 || cur + 1 >= map.length) {
             this.atomCacheMap = null
             this.insertAtomStyle = originMethods.insertAtomStyle
             this.insertAtomRules = originMethods.insertAtomRules
@@ -90,6 +97,7 @@ export class HydrateStyleSheet extends ClientStyleSheet implements UsaStyleSheet
         if (this.deepCacheMap.size === 0) {
           this.insertDeepStyle = originMethods.insertDeepStyle
           this.insertDeepRules = originMethods.insertDeepRules
+          this.deepCacheMap = null
         }
         return el
       })

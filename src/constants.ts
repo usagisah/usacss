@@ -11,6 +11,8 @@ export const deepStyleContentHashReg = new RegExp(styleContentHashPlaceholder, "
 
 export const mediaPseudoReg = /\s&(?=:+\w+$)/
 
+export const hydrateExtractHashReg = /(?<=\/\*h:)[a-z0-9]+(?=\*\/)/g
+
 export const blankReg = /\s/g
 
 export const enum StyleRuleType {
