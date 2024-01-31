@@ -11,8 +11,8 @@
   },
   "exports": {
     "./vite-vue": {
-      "types": "./dist/vue/plugin.d.ts",
-      "default": "./dist/vue/plugin.js"
+      "types": "./dist/vite-vue/plugin.d.ts",
+      "default": "./dist/vite-vue/plugin.js"
     },
     "./vue": {
       "types": "./dist/vue/vue.d.ts",
