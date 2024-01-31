@@ -1,5 +1,5 @@
+import { AtomStyleConfig, AtomStyleJsonRules, UsaStyleSheet, atomStyle as _atomStyle } from "@usacss/core"
 import { inject } from "vue"
-import { AtomStyleConfig, AtomStyleJsonRules, UsaStyleSheet, atomStyle as _atomStyle } from "../index.js"
 import { CSSContext, cssContextKey } from "./context.js"
 
 export function atomStyle(style: AtomStyleConfig) {

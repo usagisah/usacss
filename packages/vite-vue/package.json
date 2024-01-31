@@ -1,0 +1,20 @@
+{
+  "name": "@usacss/vite-vue",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
+  },
+  "scripts": {
+    "watch": "tsc -w"
+  },
+  "files": [],
+  "dependencies": {
+    "@usacss/core": "workspace:^",
+    "esbuild": "^0.19.12"
+  }
+}

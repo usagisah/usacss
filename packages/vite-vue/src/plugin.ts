@@ -1,5 +1,5 @@
+import { NodeStyleSheet } from "@usacss/core"
 import { Plugin, ViteDevServer } from "vite"
-import { NodeStyleSheet } from "../index.js"
 import { buildCss } from "./buildCss.js"
 
 function extractId(id: string) {

@@ -1,5 +1,5 @@
+import { ClientStyleSheet, NodeStyleSheet, UsaStyleSheet } from "@usacss/core"
 import { defineComponent, h, provide, ref } from "vue"
-import { ClientStyleSheet, NodeStyleSheet, UsaStyleSheet } from "../index.js"
 
 export const cssContextKey = "__$css_provide_"
 
@@ -20,7 +20,7 @@ export const createUsacssProvide = async (props: UsacssProvideProps) => {
   if (sheet) {
     _sheet = sheet
   } else if (hydrate) {
-    _sheet = new (await import("../HydrateStyleSheet.js")).HydrateStyleSheet()
+    _sheet = new (await import("@usacss/core")).HydrateStyleSheet()
   } else {
     _sheet = isBrowser() ? new ClientStyleSheet() : new NodeStyleSheet()
   }

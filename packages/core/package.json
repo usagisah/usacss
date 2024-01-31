@@ -1,0 +1,19 @@
+{
+  "name": "@usacss/core",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "watch": "tsc -w"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [],
+  "dependencies": {
+    "csstype": "^3.1.3"
+  }
+}

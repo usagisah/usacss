@@ -4,7 +4,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "baseUrl": ".",
     "strict": true,
     "strictNullChecks": false,
     "declaration": true,
@@ -14,15 +13,10 @@
     "useDefineForClassFields": true,
     "sourceMap": true,
     "incremental": true,
-    "outDir": "dist",
     "types": [
       "vitest/globals"
     ]
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
   "types": [
     "vitest/globals"
   ]

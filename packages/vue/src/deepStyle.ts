@@ -1,5 +1,5 @@
+import { DeepStyleConfig, DeepStyleJsonRules, UsaStyleSheet, deepStyle as _deepStyle } from "@usacss/core"
 import { ShallowRef, inject, onUnmounted, shallowRef } from "vue"
-import { DeepStyleConfig, DeepStyleJsonRules, UsaStyleSheet, deepStyle as _deepStyle } from "../index.js"
 import { useStyleSheetActions } from "./actions.js"
 import { CSSContext, cssContextKey } from "./context.js"
 

@@ -1,0 +1,22 @@
+{
+  "name": "@usacss/vue",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/vue.d.ts",
+      "default": "./dist/vue.js"
+    }
+  },
+  "scripts": {
+    "watch": "tsc -w"
+  },
+  "files": [],
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "dependencies": {
+    "@usacss/core": "workspace:^"
+  }
+}

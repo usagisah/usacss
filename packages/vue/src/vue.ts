@@ -4,7 +4,7 @@ export type { DeleteAtomStyle, DeleteDeepStyle, StyleSheetActions } from "./acti
 export { atomStyle, useAtomStyle } from "./atomStyle.js"
 export { deepStyle, useDeepStyle } from "./deepStyle.js"
 
-export type { KeyframesStyleConfig } from "../keyframes.js"
+export type { KeyframesStyleConfig } from "@usacss/core"
 export { keyframes } from "./keyframes.js"
 
 export { createUsacssProvide } from "./context.js"
