@@ -9,3 +9,6 @@ export { keyframes } from "./keyframes.js"
 
 export { createUsacssProvide } from "./context.js"
 export type { CSSContext, UsacssProvideProps } from "./context.js"
+
+export { useStyleVar, useThemeMode } from "./hooks.js"
+export type { StyleVarActions } from "./hooks.js"

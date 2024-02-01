@@ -36,7 +36,7 @@ export function atomStyle(styleConfig: AtomStyleConfig, sheet: UsaStyleSheet): A
       if (styleValKey.startsWith("@mode ")) {
         const [mode, pseudo = ""] = styleValKey.slice(6).split(mediaPseudoReg)
         atomStyle[`${styleValKey}-${_styleKey + pseudo}`] = sheet.insertAtomStyle({
-          t: StyleRuleType.mediaQuery,
+          t: ruleType,
           m: mode.trim(),
           k: _styleKey,
           p: pseudo.trim(),
