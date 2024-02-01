@@ -83,7 +83,7 @@ export class NodeStyleSheet implements UsaStyleSheet {
 
     let deepStyleRawContent = styleObjToString(style)
     if (deepStyleRawContent.length > 0) {
-      deepStyleRawContent = `.${styleContentHashPlaceholder}${select}{${deepStyleRawContent}}`
+      deepStyleRawContent = `.${styleContentHashPlaceholder} ${select}{${deepStyleRawContent}}`
     }
 
     for (const { key, val } of pseudo) {
@@ -91,7 +91,7 @@ export class NodeStyleSheet implements UsaStyleSheet {
       if (str.length === 0) {
         continue
       }
-      deepStyleRawContent += `.${styleContentHashPlaceholder}${select}${key}{${str}}`
+      deepStyleRawContent += `.${styleContentHashPlaceholder} ${select}${key}{${str}}`
     }
 
     const hash = "d" + this.hash(deepStyleRawContent)

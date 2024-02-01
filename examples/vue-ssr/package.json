@@ -1,0 +1,27 @@
+{
+  "name": "vite-vue-typescript-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node server",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build --ssrManifest --outDir dist/client",
+    "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server",
+    "preview": "cross-env NODE_ENV=production node server"
+  },
+  "dependencies": {
+    "@usacss/vite-vue": "link:../../packages/vite-vue",
+    "@usacss/vue": "link:../../packages/vue",
+    "@vitejs/plugin-vue": "^5.0.3",
+    "compression": "^1.7.4",
+    "element-plus": "^2.5.3",
+    "express": "^4.18.2",
+    "sirv": "^2.0.4",
+    "vue": "^3.4.15"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "cross-env": "^7.0.3"
+  }
+}

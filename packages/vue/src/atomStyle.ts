@@ -8,7 +8,7 @@ export function atomStyle(style: AtomStyleConfig) {
   }) as any as string
 }
 
-type UseAtomStyleConfig = AtomStyleConfig | ((sheet: UsaStyleSheet) => any) | Record<string, { r: AtomStyleJsonRules; __$css_rule_: boolean }>
+type UseAtomStyleConfig = string | AtomStyleConfig | ((sheet: UsaStyleSheet) => any) | Record<string, { r: AtomStyleJsonRules; __$css_rule_: boolean }>
 
 export function useAtomStyle(...configs: UseAtomStyleConfig[]): string {
   const { sheet } = inject<CSSContext>(cssContextKey)
@@ -19,9 +19,9 @@ export function useAtomStyle(...configs: UseAtomStyleConfig[]): string {
     if ("__$css_rule_" in p) {
       classNames.push(...sheet.insertAtomRules(p.r))
     } else if (typeof p === "function") {
-      classNames.push(...[...Object.values(p(sheet))].join(" "))
+      classNames.push(...Object.values(p(sheet)))
     } else {
-      classNames.push(...[...Object.values(p(sheet))].join(" "))
+      classNames.push(...Object.values(p))
     }
   }
   return classNames.join(" ")

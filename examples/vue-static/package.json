@@ -1,0 +1,21 @@
+{
+  "name": "vue-static",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@usacss/vite-vue": "link:../../packages/vite-vue",
+    "@usacss/vue": "link:../../packages/vue",
+    "autoprefixer": "^10.4.17",
+    "element-plus": "^2.5.3",
+    "esbuild": "^0.19.12",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "vue": "^3.3.11"
+  }
+}
