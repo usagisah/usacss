@@ -9,11 +9,11 @@ export class NodeStyleSheet implements UsaStyleSheet {
   hash = hash
 
   insertAtomStyle(rawStyle: AtomRawStyle, callback?: AtomStyleInsertCallback) {
-    const { t, k = "", v, r = "", p = "" } = rawStyle
+    const { t, r = "", k = "", p = "", v, m } = rawStyle
     let rawContent = ""
     switch (t as any) {
       case StyleRuleType.atom: {
-        rawContent = `${p}{${k}:${v};}`
+        rawContent = m ? `.${m} ${styleContentHashPlaceholder})${p}{${k}:${v}}` : `.${styleContentHashPlaceholder}${p}{${k}:${v}}`
         break
       }
       case StyleRuleType.keyframes: {
@@ -59,7 +59,7 @@ export class NodeStyleSheet implements UsaStyleSheet {
   atomRuleToContent(c: string, { t, h }: AtomStyleRule) {
     switch (t) {
       case StyleRuleType.atom:
-        return `.${h}${c}`
+        return c.replace(styleContentHashPlaceholder, h)
       case StyleRuleType.keyframes:
         return c
       case StyleRuleType.mediaQuery:

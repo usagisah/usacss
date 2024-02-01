@@ -2,7 +2,7 @@ import { StyleRuleType } from "./constants.js"
 
 export type StringObj = Record<string, string>
 
-export type AtomRawStyle = { t: StyleRuleType; r?: string; k?: string; v: string; p?: string; m?: StringObj }
+export type AtomRawStyle = { t: StyleRuleType; r?: string; k?: string; v: string; p?: string; m?: string }
 
 export type DeppRawStyle = { select: string; style: StringObj; pseudo: { key: string; val: StringObj }[] }
 
