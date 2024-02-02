@@ -26,7 +26,7 @@ export type UsaStyleSheet = {
   insertDeepStyle(style: DeppRawStyle, callback?: DeepStyleInsertCallback): string
   insertDeepRules(rules: DeepStyleJsonRules, callback?: DeepStyleInsertCallback): string[]
   deleteDeepStyle(cls: (string | { class: string; force: boolean })[]): void
-  toJson(): { atomStyle: AtomStyleJsonRules; deepStyle: DeepStyleJsonRules }
+  toJson(): { atomRules: AtomStyleJsonRules; deepRules: DeepStyleJsonRules }
   toString(): string
   toHTMLString(): string
 }

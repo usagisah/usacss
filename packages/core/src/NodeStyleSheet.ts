@@ -185,8 +185,8 @@ export class NodeStyleSheet implements UsaStyleSheet {
 
   toJson() {
     return {
-      atomStyle: Array.from(this.atomRules),
-      deepStyle: Array.from(this.deepRules)
+      atomRules: Array.from(this.atomRules),
+      deepRules: Array.from(this.deepRules)
     }
   }
 }

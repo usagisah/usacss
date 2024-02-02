@@ -1,4 +1,4 @@
-import { NodeStyleSheet } from "@usacss/core"
+import { AtomStyleJsonRules, DeepStyleJsonRules, NodeStyleSheet } from "@usacss/core"
 import { Plugin, ViteDevServer } from "vite"
 import { buildCss } from "./buildCssFile.js"
 
@@ -16,7 +16,7 @@ function dynamicPlugin(): Plugin {
   return {
     name: "usacss:dynamic",
     apply: "serve",
-    transform: async (_, id, { ssr }) => {
+    transform: async (_, id) => {
       const [__, flag, ext] = id.split(".")
       if (!exts.includes(ext) || flag !== "style") {
         return
@@ -33,8 +33,8 @@ function dynamicPlugin(): Plugin {
           const fileItemSheet = new NodeStyleSheet()
           res(fileItemSheet)
 
-          const { atomStyle, deepStyle } = fileItemSheet.toJson()
-          const ruleCode = JSON.stringify(atomStyle.length > 0 ? atomStyle : deepStyle)
+          const { atomRules, deepRules } = fileItemSheet.toJson()
+          const ruleCode = JSON.stringify(atomRules.length > 0 ? atomRules : deepRules)
           constantsRuleCode += `export const ${exposedName}={r:${ruleCode},__$css_rule_:true};`
         }
         return constantsRuleCode
@@ -43,7 +43,17 @@ function dynamicPlugin(): Plugin {
   }
 }
 
-function staticPlugin(): Plugin[] {
+interface StaticConfig {
+  rules: { atomRules: AtomStyleJsonRules; deepRules: DeepStyleJsonRules }
+}
+function staticPlugin(config: StaticConfig): Plugin[] {
+  const { rules } = config
+
+  let extendContent = ""
+  const sheet = new NodeStyleSheet()
+  sheet.insertAtomRules(rules.atomRules)
+  sheet.insertDeepRules(rules.deepRules)
+
   const connections: { server: ViteDevServer; lastSendTime: number }[] = []
   const cssModuleMap = new Map<
     string,
@@ -52,11 +62,11 @@ function staticPlugin(): Plugin[] {
     }
   >()
   const buildStyleContent = () => {
-    return [...cssModuleMap.values()].map(({ fileSheet }) => fileSheet.toString()).join("")
+    return extendContent + [...cssModuleMap.values()].map(({ fileSheet }) => fileSheet.toString()).join("")
   }
 
   let lastCompileTime = 0
-  const transformStyleFile: Plugin["transform"] = async (_, id, {ssr}) => {
+  const transformStyleFile: Plugin["transform"] = async (_, id, { ssr }) => {
     if (ssr) {
       throw "usacss: 静态模式无法应用到 ssr 场景"
     }
@@ -157,9 +167,16 @@ function staticPlugin(): Plugin[] {
 
 export interface UsacssPluginConfig {
   static?: boolean
+  rules?: { atomRules?: AtomStyleJsonRules; deepRules?: DeepStyleJsonRules }
 }
 
 export function UsacssPlugin(config?: UsacssPluginConfig) {
-  const _static = !!config?.static
-  return _static ? staticPlugin() : dynamicPlugin()
+  const { static: static1, rules = {} } = config ?? {}
+  const _static = !!static1
+  const _rules = { atomRules: rules.atomRules ?? [], deepRules: rules.deepRules ?? [] }
+  return _static
+    ? staticPlugin({
+        rules: _rules
+      })
+    : dynamicPlugin()
 }

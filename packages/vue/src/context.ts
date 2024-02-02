@@ -1,4 +1,4 @@
-import { ClientStyleSheet, NodeStyleSheet, UsaStyleSheet } from "@usacss/core"
+import { AtomStyleJsonRules, ClientStyleSheet, DeepStyleJsonRules, NodeStyleSheet, UsaStyleSheet } from "@usacss/core"
 import { defineComponent, h, provide, ref } from "vue"
 
 export const cssContextKey = "__$css_provide_"
@@ -8,14 +8,15 @@ export interface CSSContext {
 }
 
 const isBrowser = () => !!(globalThis.window && globalThis.document)
-export type UsacssProvideProps = {
+export interface UsacssProvideProps {
   sheet?: UsaStyleSheet
   hydrate?: boolean
+  rules?: { atomRules?: AtomStyleJsonRules; deepRules?: DeepStyleJsonRules }
   app: any
   [k: string]: any
 }
 export const createUsacssProvide = async (props: UsacssProvideProps) => {
-  const { sheet, hydrate, app, ..._props } = props
+  const { sheet, hydrate, app, rules, ..._props } = props
   let _sheet: UsaStyleSheet
   if (sheet) {
     _sheet = sheet
@@ -23,6 +24,12 @@ export const createUsacssProvide = async (props: UsacssProvideProps) => {
     _sheet = new (await import("@usacss/core")).HydrateStyleSheet()
   } else {
     _sheet = isBrowser() ? new ClientStyleSheet() : new NodeStyleSheet()
+  }
+
+  if (rules) {
+    const { atomRules, deepRules } = rules
+    if (atomRules) _sheet.insertAtomRules(atomRules)
+    if (deepRules) _sheet.insertDeepRules(deepRules)
   }
 
   const sheetRef = ref<UsaStyleSheet>()
