@@ -1,6 +1,6 @@
 # @usacss/vue
 
-一个将`css in js`和原子 `css` 相结合的库
+一个将`css in js`和原子 `css` 相结合的原子样式库
 
 当前具备的能力
 

@@ -4,7 +4,7 @@
   "scripts": {
     "watch": "pnpm -r --parallel watch",
     "build": "node scripts/build.mjs",
-    "format": "prettier -w packages/**/*.ts"
+    "format": "prettier -w packages/**/*.{ts,json}"
   },
   "license": "MIT",
   "devDependencies": {

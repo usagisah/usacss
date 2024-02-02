@@ -1,7 +1,7 @@
 {
   "name": "@usacss/vite-vue",
   "version": "0.1.0",
-  "description": "",
+  "description": "@usacss/vue的辅助插件",
   "type": "module",
   "exports": {
     ".": {
@@ -12,7 +12,21 @@
   "scripts": {
     "watch": "tsc -w"
   },
-  "files": [],
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "@usacss",
+    "usacss",
+    "@usacss/vite-vue"
+  ],
+  "homepage": "https://github.com/usagisah/usacss",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usagisah/usacss.git"
+  },
+  "author": "顾弦笙/usagisah",
+  "license": "MIT",
   "dependencies": {
     "@usacss/core": "workspace:^",
     "esbuild": "^0.19.12"

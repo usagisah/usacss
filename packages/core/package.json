@@ -12,7 +12,21 @@
       "default": "./dist/index.js"
     }
   },
-  "files": [],
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "@usacss",
+    "usacss",
+    "@usacss/core"
+  ],
+  "homepage": "https://github.com/usagisah/usacss",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usagisah/usacss.git"
+  },
+  "author": "顾弦笙/usagisah",
+  "license": "MIT",
   "dependencies": {
     "csstype": "^3.1.3"
   }

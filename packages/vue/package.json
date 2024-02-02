@@ -1,7 +1,7 @@
 {
   "name": "@usacss/vue",
   "version": "0.1.0",
-  "description": "",
+  "description": "一个将`css in js`和原子 `css` 相结合的原子样式库",
   "type": "module",
   "exports": {
     ".": {
@@ -12,7 +12,21 @@
   "scripts": {
     "watch": "tsc -w"
   },
-  "files": [],
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "@usacss",
+    "usacss",
+    "@usacss/vue"
+  ],
+  "homepage": "https://github.com/usagisah/usacss",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usagisah/usacss.git"
+  },
+  "author": "顾弦笙/usagisah",
+  "license": "MIT",
   "peerDependencies": {
     "vue": "^3.0.0"
   },
