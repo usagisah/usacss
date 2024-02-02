@@ -1,7 +1,7 @@
 {
   "name": "@usacss/vue",
   "version": "0.1.0",
-  "description": "一个将`css in js`和原子 `css` 相结合的原子样式库",
+  "description": "一个将`CSS-in-JS`和原子 `css` 相结合的原子样式库",
   "type": "module",
   "exports": {
     ".": {
