@@ -13,7 +13,7 @@ export class NodeStyleSheet implements UsaStyleSheet {
     let rawContent = ""
     switch (t as any) {
       case StyleRuleType.atom: {
-        rawContent = m ? `.${m} :is(.${styleContentHashPlaceholder})${p}{${k}:${v}}` : `.${styleContentHashPlaceholder}${p}{${k}:${v}}`
+        rawContent = m ? `.${m} .${styleContentHashPlaceholder}${p}{${k}:${v}}` : `.${styleContentHashPlaceholder}${p}{${k}:${v}}`
         break
       }
       case StyleRuleType.keyframes: {

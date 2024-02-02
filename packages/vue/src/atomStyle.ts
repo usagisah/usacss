@@ -21,7 +21,7 @@ export function useAtomStyle(...configs: UseAtomStyleConfig[]): string {
     } else if (typeof p === "function") {
       classNames.push(...Object.values(p(sheet)))
     } else {
-      classNames.push(...Object.values(p))
+      classNames.push(...Object.values(_atomStyle(p, sheet)))
     }
   }
   return classNames.join(" ")

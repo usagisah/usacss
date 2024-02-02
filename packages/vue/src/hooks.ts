@@ -15,14 +15,16 @@ function setElementClass(el: Element | null, mode?: string, oMode?: string) {
     el.classList.add(mode)
   }
 }
-export function useThemeMode(selector: string, mode?: string | null): ShallowRef<string | null> {
+export function useThemeMode(selector: string, mode?: string | null, unMount?: boolean): ShallowRef<string | null> {
   const m = shallowRef<string | null | undefined>(mode)
   let el: Element | null
   nextTick(() => {
     el = document.querySelector(selector)
     setElementClass(el, mode)
   })
-  onUnmounted(() => setElementClass(el, null, m.value))
+  if (unMount) {
+    onUnmounted(() => setElementClass(el, null, m.value))
+  }
 
   watch(m, (mode, oMode) => {
     if (!el) return
